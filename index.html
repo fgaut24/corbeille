@@ -295,6 +295,14 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
           <div class="field"><label for="pinSet">Code enseignant</label><input id="pinSet" type="text" value="1234"></div>
         </div>
       </div>
+
+      <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Suivi des groupes (en direct)</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px">Consultez le portefeuille de chaque équipe en temps réel, sans passer par l'export.</p>
+        <div class="chips" id="pgChips" style="margin-bottom:14px"></div>
+        <div id="pgDetail"></div>
+      </div>
+
       <div class="card pad" style="margin-top:16px">
         <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 14px;font-size:16px">Groupes</h2>
         <div class="field" style="max-width:240px"><label for="nbGroups">Nombre de groupes</label>
@@ -423,7 +431,7 @@ function marketStatus(){ const m=CFG&&CFG.market; if(!m||!m.started) return "off
    4. ÉTAT
    ===================================================================== */
 let CFG=null, PFS={}, MY=null, PROF_OK=false, CURVIEW="trade", BOOTED=false;
-let FILTER_CAT="all", FILTER_Q="";
+let FILTER_CAT="all", FILTER_Q="", PROF_GROUP=null;
 const ROWREFS={};
 
 function defaultCfg(){ const groups=[]; for(let i=1;i<=6;i++) groups.push({id:"g"+i,name:"Groupe "+i});
@@ -593,7 +601,7 @@ function paint(){ renderStatus();
 function liveTick(){ renderStatus(); renderTape();
   if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); }
   else if(CURVIEW==="board") renderBoard();
-  else if(CURVIEW==="prof"&&PROF_OK) renderMState(); }
+  else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfGroupDetail(); } }
 
 /* =====================================================================
    9. TRADING
@@ -619,7 +627,8 @@ async function doTrade(id,side){
    10. ENSEIGNANT
    ===================================================================== */
 function fillProf(){ $("#budgetIn").value=CFG.budget; $("#feeIn").value=CFG.feePct; $("#pinSet").value=CFG.teacherPin;
-  $("#speedSel").value=String(CFG.market.tickMs); $("#nbGroups").value=String(CFG.groups.length); renderGroupNames(); renderMState(); }
+  $("#speedSel").value=String(CFG.market.tickMs); $("#nbGroups").value=String(CFG.groups.length); renderGroupNames(); renderMState();
+  renderProfGroups(); }
 function renderGroupNames(){ const n=parseInt($("#nbGroups").value,10); let html="";
   for(let i=0;i<n;i++){ const g=CFG.groups[i]||{name:"Groupe "+(i+1)};
     html+=`<div class="field"><label>Nom du groupe ${i+1}</label><input data-gname="${i}" value="${g.name.replace(/"/g,'&quot;')}"></div>`; }
@@ -634,6 +643,26 @@ async function profPause(){ if(CFG.market.running){ CFG.market.accumTicks=curren
 async function profResetMarket(){ if(!confirm("Réinitialiser le marché ? Les cours repartent de leur valeur initiale (les portefeuilles ne sont pas effacés).")) return;
   CFG.market={started:false,running:false,startedAt:null,accumTicks:0,tickMs:CFG.market.tickMs};
   for(const k in PATHS) delete PATHS[k]; await saveCfg(); renderMState(); renderStatus(); toast("Marché réinitialisé."); }
+
+/* ----- Suivi des portefeuilles par l'enseignant ----- */
+function renderProfGroups(){ const chips=$("#pgChips"); if(!chips) return;
+  if(!PROF_GROUP || !CFG.groups.find(g=>g.id===PROF_GROUP)) PROF_GROUP=CFG.groups[0]&&CFG.groups[0].id;
+  chips.innerHTML=CFG.groups.map(g=>`<button class="chip" data-pg="${g.id}" aria-pressed="${g.id===PROF_GROUP}">${g.name}</button>`).join("");
+  renderProfGroupDetail(); }
+function renderProfGroupDetail(){ const box=$("#pgDetail"); if(!box||!PROF_GROUP) return;
+  const g=CFG.groups.find(x=>x.id===PROF_GROUP); if(!g){ box.innerHTML=""; return; }
+  const pf=getPf(PROF_GROUP), t=currentTick(), total=totalValue(pf,t), plv=total-CFG.budget, plPct=(total/CFG.budget-1)*100;
+  const rows=Object.keys(pf.holdings).filter(id=>pf.holdings[id]>0).map(id=>{ const i=BY_ID[id],q=pf.holdings[id],p=priceAt(i,t),val=q*p;
+    return `<tr><td class="l"><span class="tk">${id}</span> ${i.name}</td><td class="mono">${q}</td><td class="px">${pxf.format(p)} €</td><td class="px">${eur0.format(val)}</td></tr>`; });
+  box.innerHTML=`
+    <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:12px">
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Valeur totale</div><div class="mono" style="font-size:20px;color:var(--ink)">${eur2.format(total)}</div></div>
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Performance</div><div class="mono ${cls(plv)}" style="font-size:20px">${pct(plPct)}</div></div>
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Liquidités</div><div class="mono" style="font-size:20px;color:var(--ink)">${eur0.format(pf.cash)}</div></div>
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Opérations</div><div class="mono" style="font-size:20px;color:var(--ink)">${pf.txs.length}</div></div>
+    </div>
+    ${rows.length?`<div class="scroll"><table><thead><tr><th class="l">Titre</th><th>Qté</th><th>Cours</th><th>Valeur</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`
+      :`<p style="color:var(--muted);font-size:13px;margin:0">Aucune position — entièrement en liquidités.</p>`}`; }
 async function profSave(){ CFG.budget=Math.max(0,parseFloat($("#budgetIn").value)||0);
   CFG.feePct=Math.max(0,parseFloat($("#feeIn").value)||0); CFG.teacherPin=($("#pinSet").value||"1234").trim();
   CFG.market.tickMs=parseInt($("#speedSel").value,10);
@@ -658,8 +687,9 @@ document.addEventListener("click", async (e)=>{
     if(t.dataset.pick){ MY=t.dataset.pick; $("#groupPick").style.display="none"; $("#groupDesk").style.display="block"; enterDesk(); return; }
     if(t.dataset.buy) return doTrade(t.dataset.buy,"BUY");
     if(t.dataset.sell) return doTrade(t.dataset.sell,"SELL");
-    if(t.dataset.cat){ FILTER_CAT=t.dataset.cat; document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===FILTER_CAT)); buildMarket(); return; }
+    if(t.dataset.cat){ FILTER_CAT=t.dataset.cat; document.querySelectorAll("[data-cat]").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===FILTER_CAT)); buildMarket(); return; }
   }
+  const pgBtn=e.target.closest("[data-pg]"); if(pgBtn){ PROF_GROUP=pgBtn.dataset.pg; renderProfGroups(); return; }
   if(e.target.id==="switchGroup"){ MY=null; $("#groupDesk").style.display="none"; $("#groupPick").style.display="block"; renderPicker(); }
   if(e.target.id==="pinBtn"){ const v=$("#pinIn").value.trim(); if(v===CFG.teacherPin){ PROF_OK=true; $("#gate").style.display="none"; $("#profPanel").style.display="block"; fillProf(); } else toast("Code incorrect.",true); }
   if(e.target.id==="mStart") profStart();
