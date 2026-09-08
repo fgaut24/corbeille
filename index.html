@@ -94,6 +94,7 @@ tbody tr:last-child td{border-bottom:0} tbody tr:hover{background:#F7F9FB} td.l{
 .b-oblig{background:#F1ECF6; color:#6a4b8c} .b-pea{background:var(--gold-soft); color:#7a5a06}
 .b-syn{background:#E7ECF3; color:#3a5a86} .b-mono-tag{background:#F0EFEC; color:#8a8576}
 .px{font-family:var(--mono); font-weight:500; color:var(--ink)}
+.spark{display:inline-block; line-height:0; min-width:76px} .spark svg{display:block}
 .trade{display:inline-flex; gap:6px; align-items:center; justify-content:flex-end}
 .qty{width:60px; padding:7px 8px; border:1px solid var(--line); border-radius:8px; font-family:var(--mono); font-size:13px; text-align:right}
 .qty:focus{outline:2px solid var(--ink); border-color:var(--ink)}
@@ -204,7 +205,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Titre</th><th class="l">Classe</th><th>Cours</th><th>Var. séance</th><th>Ma position</th><th>Quantité</th><th>Action</th></tr></thead>
+            <thead><tr><th class="l">Titre</th><th class="l">Classe</th><th>Cours</th><th>Var. séance</th><th>Tendance</th><th>Ma position</th><th>Quantité</th><th>Action</th></tr></thead>
             <tbody id="mktBody"></tbody>
           </table>
         </div>
@@ -433,12 +434,14 @@ function marketStatus(){ const m=CFG&&CFG.market; if(!m||!m.started) return "off
 let CFG=null, PFS={}, MY=null, PROF_OK=false, CURVIEW="trade", BOOTED=false;
 let FILTER_CAT="all", FILTER_Q="", PROF_GROUP=null;
 const ROWREFS={};
+let SPARK_N=0;
 
 function defaultCfg(){ const groups=[]; for(let i=1;i<=6;i++) groups.push({id:"g"+i,name:"Groupe "+i});
   return { v:2, budget:10000, feePct:0.20, teacherPin:"1234", groups,
     market:{started:false,running:false,startedAt:null,accumTicks:0,tickMs:10000}, resetToken:0 }; }
 function freshPf(id){ return { id, cash:CFG.budget, holdings:{}, txs:[], rt:CFG.resetToken }; }
-function getPf(id){ const pf=PFS[id]; if(pf && pf.rt===CFG.resetToken) return pf; return freshPf(id); }
+function getPf(id){ let pf=PFS[id]; if(!(pf && pf.rt===CFG.resetToken)) pf=freshPf(id);
+  if(!pf.holdings) pf.holdings={}; if(!pf.txs) pf.txs=[]; return pf; }
 
 async function saveCfg(){ if(FB_ON) await dbSet("cfg", CFG); else paint(); }
 async function savePf(pf){ PFS[pf.id]=pf; if(FB_ON) await dbSet("pf/"+pf.id, pf); }
@@ -513,7 +516,7 @@ function filtered(){ return INSTRUMENTS.filter(i=>{
 function buildMarket(){
   const body=$("#mktBody"); for(const k in ROWREFS) delete ROWREFS[k];
   const list=filtered();
-  if(!list.length){ body.innerHTML=`<tr><td colspan="7" class="empty">Aucun titre ne correspond.</td></tr>`; return; }
+  if(!list.length){ body.innerHTML=`<tr><td colspan="8" class="empty">Aucun titre ne correspond.</td></tr>`; return; }
   body.innerHTML=list.map(i=>{
     const synBadge=i.syn?`<span class="badge b-syn">synthétique</span>`:"";
     return `<tr>
@@ -521,22 +524,50 @@ function buildMarket(){
       <td class="l"><span class="badge ${CAT_BADGE[i.cat]}">${CAT_LABEL[i.cat]}</span> <span class="badge b-pea">PEA</span> ${synBadge}</td>
       <td class="px" data-px="${i.id}">—</td>
       <td class="mono" data-var="${i.id}">—</td>
+      <td class="l"><span class="spark" data-spark="${i.id}"></span></td>
       <td class="pos" data-pos="${i.id}">—</td>
       <td><input class="qty" type="number" min="1" step="1" value="1" data-qty="${i.id}" aria-label="Quantité ${i.name}"></td>
       <td><div class="trade">
         <button class="btn btn-buy" data-buy="${i.id}">Acheter</button>
         <button class="btn btn-sell" data-sell="${i.id}">Vendre</button></div></td>
     </tr>`; }).join("");
-  list.forEach(i=>{ ROWREFS[i.id]={ px:body.querySelector(`[data-px="${i.id}"]`), var:body.querySelector(`[data-var="${i.id}"]`),
-    pos:body.querySelector(`[data-pos="${i.id}"]`), buy:body.querySelector(`[data-buy="${i.id}"]`), sell:body.querySelector(`[data-sell="${i.id}"]`) }; });
-  updateMarket();
+  list.forEach(i=>{ ROWREFS[i.id]={ px:body.querySelector(`[data-px="${i.id}"]`), vr:body.querySelector(`[data-var="${i.id}"]`),
+    pos:body.querySelector(`[data-pos="${i.id}"]`), buy:body.querySelector(`[data-buy="${i.id}"]`), sell:body.querySelector(`[data-sell="${i.id}"]`),
+    spk:body.querySelector(`[data-spark="${i.id}"]`) }; });
+  updateMarket(); drawAllSparks();
+}
+function drawAllSparks(){ for(const id in ROWREFS){ const r=ROWREFS[id], i=BY_ID[id];
+  if(r&&r.spk&&i){ try{ r.spk.innerHTML=sparkSVG(i); }catch(e){} } } }
+function sparkSVG(i){
+  const tick=currentTick(), N=24, pts=[];
+  for(let k=0;k<=N;k++){ pts.push(priceAt(i, Math.round(tick*k/N))); }
+  let mn=Math.min(...pts), mx=Math.max(...pts); if(mx-mn<1e-9){ mx+=1; mn-=1; }
+  const W=76,H=22, d=pts.map((v,k)=>{ const x=(k/(pts.length-1))*W, y=H-2-((v-mn)/(mx-mn))*(H-4); return (k?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }).join(" ");
+  const col=pts[pts.length-1]>=pts[0]?"#157A4D":"#C0392B";
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5"/></svg>`;
 }
 function updateMarket(){
-  const t=currentTick(), live=marketStatus()==="live", pf=getPf(MY);
-  for(const id in ROWREFS){ const i=BY_ID[id], r=ROWREFS[id]; const p=priceAt(i,t), v=(p/i.base-1)*100;
-    r.px.textContent=pxf.format(p)+" €"; r.var.textContent=pct(v); r.var.className="mono "+cls(v);
-    const q=pf.holdings[id]||0; r.pos.textContent= q>0? `${q} · ${eur0.format(q*p)}` : "—";
-    r.buy.disabled=!live; r.sell.disabled=!(live&&q>0); }
+  const t=currentTick(), live=marketStatus()==="live", pf=getPf(MY); const body=$("#mktBody");
+  const sparkDue = (SPARK_N++ % 4 === 0);   // courbes par valeur : rafraîchies toutes les ~4 s
+  for(const id in ROWREFS){
+    const i=BY_ID[id]; if(!i) continue;
+    let r=ROWREFS[id];
+    // Ré-résout les références manquantes (robustesse : une ligne ne doit jamais figer les autres)
+    if(!r || !r.px){ if(!body) return; r=ROWREFS[id]={
+      px:body.querySelector(`[data-px="${id}"]`), vr:body.querySelector(`[data-var="${id}"]`),
+      pos:body.querySelector(`[data-pos="${id}"]`), buy:body.querySelector(`[data-buy="${id}"]`), sell:body.querySelector(`[data-sell="${id}"]`),
+      spk:body.querySelector(`[data-spark="${id}"]`) }; }
+    try{
+      const p=priceAt(i,t), v=(p/i.base-1)*100;
+      if(r.px){ r.px.textContent=pxf.format(p)+" €"; }
+      if(r.vr){ r.vr.textContent=pct(v); r.vr.className="mono "+cls(v); }
+      const q=pf.holdings[id]||0;
+      if(r.pos){ r.pos.textContent= q>0 ? `${q} · ${eur0.format(q*p)}` : "—"; }
+      if(r.buy){ r.buy.disabled=!live; }
+      if(r.sell){ r.sell.disabled=!(live&&q>0); }
+      if(sparkDue && r.spk){ r.spk.innerHTML=sparkSVG(i); }
+    }catch(e){ /* une ligne défaillante est ignorée, les autres continuent */ }
+  }
 }
 function updateKpis(){
   const g=CFG.groups.find(x=>x.id===MY); if(!g) return; const pf=getPf(MY), t=currentTick();
@@ -661,8 +692,25 @@ function renderProfGroupDetail(){ const box=$("#pgDetail"); if(!box||!PROF_GROUP
       <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Liquidités</div><div class="mono" style="font-size:20px;color:var(--ink)">${eur0.format(pf.cash)}</div></div>
       <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Opérations</div><div class="mono" style="font-size:20px;color:var(--ink)">${pf.txs.length}</div></div>
     </div>
+    <canvas id="pgChart" width="900" height="170" style="width:100%;height:auto;margin:2px 0 14px"></canvas>
     ${rows.length?`<div class="scroll"><table><thead><tr><th class="l">Titre</th><th>Qté</th><th>Cours</th><th>Valeur</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`
-      :`<p style="color:var(--muted);font-size:13px;margin:0">Aucune position — entièrement en liquidités.</p>`}`; }
+      :`<p style="color:var(--muted);font-size:13px;margin:0">Aucune position — entièrement en liquidités.</p>`}`;
+  drawGroupChart(PROF_GROUP); }
+function drawGroupChart(gid){
+  const c=$("#pgChart"); if(!c) return; const ctx=c.getContext("2d"); if(!ctx) return;
+  const dpr=window.devicePixelRatio||1, W=c.clientWidth||900, H=170;
+  c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const padL=60,padR=12,padT=12,padB=16, tick=currentTick(), N=Math.min(80,Math.max(2,tick)), ticks=[];
+  for(let k=0;k<=N;k++) ticks.push(Math.round(tick*k/N));
+  const pf=getPf(gid), data=ticks.map(tt=>valueAtTick(pf,tt));
+  let mn=Math.min(...data,CFG.budget), mx=Math.max(...data,CFG.budget); const sp=(mx-mn)||1; mn-=sp*0.1; mx+=sp*0.1;
+  const X=k=>padL+(k/(ticks.length-1))*(W-padL-padR), Y=v=>padT+(1-(v-mn)/(mx-mn))*(H-padT-padB);
+  ctx.strokeStyle="#E4EAF0"; ctx.fillStyle="#9aa7b4"; ctx.font="10px 'IBM Plex Mono',monospace"; ctx.textAlign="right";
+  for(let j=0;j<=3;j++){ const v=mn+(mx-mn)*j/3, y=Y(v); ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(W-padR,y); ctx.stroke(); ctx.fillText(eur0.format(v),padL-6,y+3); }
+  ctx.strokeStyle="#B8860B"; ctx.setLineDash([5,4]); const yb=Y(CFG.budget); ctx.beginPath(); ctx.moveTo(padL,yb); ctx.lineTo(W-padR,yb); ctx.stroke(); ctx.setLineDash([]);
+  const last=data[data.length-1], col=last>=CFG.budget?"#157A4D":"#C0392B";
+  ctx.beginPath(); data.forEach((v,k)=>{ const x=X(k),y=Y(v); k?ctx.lineTo(x,y):ctx.moveTo(x,y); }); ctx.strokeStyle=col; ctx.lineWidth=2; ctx.lineJoin="round"; ctx.stroke();
+}
 async function profSave(){ CFG.budget=Math.max(0,parseFloat($("#budgetIn").value)||0);
   CFG.feePct=Math.max(0,parseFloat($("#feeIn").value)||0); CFG.teacherPin=($("#pinSet").value||"1234").trim();
   CFG.market.tickMs=parseInt($("#speedSel").value,10);
