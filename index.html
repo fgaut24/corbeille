@@ -84,9 +84,9 @@ h1.page{font-family:var(--disp); font-weight:800; font-size:26px; letter-spacing
 .search:focus{outline:2px solid var(--ink); border-color:var(--ink)}
 .scroll{overflow-x:auto}
 table{width:100%; border-collapse:collapse; font-size:14px; min-width:720px}
-thead th{font-family:var(--disp); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); text-align:right; padding:10px 14px; border-bottom:1px solid var(--line); font-weight:700; white-space:nowrap}
+thead th{font-family:var(--disp); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); text-align:right; padding:9px 8px; border-bottom:1px solid var(--line); font-weight:700; white-space:normal; line-height:1.25; vertical-align:bottom}
 thead th.l{text-align:left}
-tbody td{padding:10px 14px; border-bottom:1px solid #EDF1F5; text-align:right; white-space:nowrap}
+tbody td{padding:10px 8px; border-bottom:1px solid #EDF1F5; text-align:right; white-space:nowrap}
 tbody tr:last-child td{border-bottom:0} tbody tr:hover{background:#F7F9FB} td.l{text-align:left}
 .nm{font-weight:600; color:var(--ink)} .tk{font-family:var(--mono); color:var(--muted); font-size:12.5px}
 .badge{display:inline-block; font-size:10.5px; font-weight:700; padding:2px 7px; border-radius:6px; vertical-align:middle}
@@ -94,11 +94,17 @@ tbody tr:last-child td{border-bottom:0} tbody tr:hover{background:#F7F9FB} td.l{
 .b-oblig{background:#F1ECF6; color:#6a4b8c} .b-pea{background:var(--gold-soft); color:#7a5a06}
 .b-syn{background:#E7ECF3; color:#3a5a86} .b-mono-tag{background:#F0EFEC; color:#8a8576}
 .px{font-family:var(--mono); font-weight:500; color:var(--ink)}
-.spark{display:inline-block; line-height:0; min-width:76px} .spark svg{display:block}
-.trade{display:inline-flex; gap:6px; align-items:center; justify-content:flex-end}
-.qty{width:60px; padding:7px 8px; border:1px solid var(--line); border-radius:8px; font-family:var(--mono); font-size:13px; text-align:right}
+.spark{display:inline-block; line-height:0; min-width:64px} .spark svg{display:block}
+.fiche{color:var(--ink); text-decoration:underline; text-underline-offset:2px}
+.fiche:hover{color:var(--gold)}
+.res{display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; margin:2px 0 12px}
+.res a{color:var(--ink); font-size:13px; text-decoration:none; border-bottom:1px solid var(--line); padding:5px 0; display:block}
+.res a:hover{color:var(--gold); border-color:var(--gold)}
+.res span{display:block; font-size:11.5px; color:var(--muted)}
+.trade{display:inline-flex; gap:5px; align-items:center; justify-content:flex-end}
+.qty{width:52px; padding:7px 6px; border:1px solid var(--line); border-radius:8px; font-family:var(--mono); font-size:13px; text-align:right}
 .qty:focus{outline:2px solid var(--ink); border-color:var(--ink)}
-.btn{appearance:none; border:1px solid transparent; border-radius:8px; font-family:var(--disp); font-weight:600; font-size:13px; padding:7px 12px; cursor:pointer; transition:.12s}
+.btn{appearance:none; border:1px solid transparent; border-radius:8px; font-family:var(--disp); font-weight:600; font-size:12.5px; padding:7px 10px; cursor:pointer; transition:.12s}
 .btn:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
 .btn-buy{background:var(--gain); color:#fff} .btn-buy:hover{background:#0f6340}
 .btn-sell{background:#fff; color:var(--loss); border-color:#e7c5c0} .btn-sell:hover{background:var(--loss-bg)}
@@ -183,6 +189,8 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       <h1 class="page" id="deskTitle">Groupe</h1>
       <p class="lede" id="deskLede"></p>
 
+      <div id="readOnly" class="note" style="display:none;margin:0 0 16px">—</div>
+
       <div class="kpis">
         <div class="kpi"><div class="lab">Valeur totale du portefeuille</div><div class="val big" id="kTotal">—</div><div class="delta" id="kTotalD">—</div></div>
         <div class="kpi"><div class="lab">Argent disponible</div><div class="val" id="kCash">—</div><div class="delta flat">pour acheter</div></div>
@@ -192,7 +200,11 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
       <div class="card tablecard" style="margin-bottom:20px">
         <div class="tablehead"><h2>Marché</h2>
-          <canvas id="spark" width="200" height="40" style="width:200px;height:40px" aria-label="Évolution de mon portefeuille"></canvas>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span class="pos" id="srcInfo">—</span>
+            <button class="btn btn-ghost" id="refreshBtn">Actualiser</button>
+            <canvas id="spark" width="200" height="40" style="width:200px;height:40px" aria-label="Évolution de mon portefeuille"></canvas>
+          </div>
         </div>
         <div class="toolbar">
           <div class="chips">
@@ -205,7 +217,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Valeur</th><th class="l">Type de titre</th><th>Cours actuel</th><th>Variation depuis le début</th><th>Évolution du cours</th><th>Ce que je détiens</th><th>Quantité à négocier</th><th>Passer un ordre</th></tr></thead>
+            <thead><tr><th class="l">Valeur</th><th class="l">Type de titre</th><th>Cours actuel</th><th id="thVar">Variation</th><th id="thEvo">Évolution</th><th>Ce que<br>je détiens</th><th>Quantité<br>à négocier</th><th>Passer<br>un ordre</th></tr></thead>
             <tbody id="mktBody"></tbody>
           </table>
         </div>
@@ -226,6 +238,20 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <p>Le <b>PEA</b> n'accepte que des <b>actions</b> de sociétés de l'Union européenne / EEE et des <b>ETF/OPCVM</b> investis à ≥ 75 % en actions de ces zones. Les 40 valeurs du CAC 40 sont éligibles (y compris Airbus et Stellantis, sièges aux Pays-Bas, ou ArcelorMittal au Luxembourg).</p>
         <p>Les <b>obligations en direct</b> (OAT, Bund, obligations d'entreprise) sont <b>exclues</b> du PEA : ce sont des titres de créance. Il n'existe d'ailleurs plus aujourd'hui d'ETF obligataire diversifié éligible au PEA — l'ancien « Amundi PEA Obligations d'État Euro » a été reclassé en fonds <b>monétaire</b> en 2024. La seule option pour placer des liquidités reste donc ce fonds monétaire, marqué <span class="badge b-syn">synthétique</span> : il détient un panier d'actions européennes éligibles et en échange la performance, par un contrat de <i>swap</i>, contre celle d'un indice monétaire (€STR). Bon sujet de cours : pourquoi le PEA, réservé aux actions, ne permet presque aucune diversification obligataire.</p>
         <p>Cours et frais sont simulés ; aucune somme réelle n'est engagée.</p>
+      </details>
+
+      <details class="peda">
+        <summary>Ressources — s'informer sur les marchés</summary>
+        <p style="font-size:13px;color:var(--muted);margin:2px 0 10px">Chaque valeur du tableau possède un lien « fiche » qui ouvre sa page boursière (cours, actualités, données financières). Ci-dessous, des sources fiables pour préparer vos décisions.</p>
+        <div class="res">
+          <a href="https://www.abcbourse.com/marches/palmares/xpar" target="_blank" rel="noopener noreferrer">Palmarès du jour — ABC Bourse<span>Plus fortes hausses et baisses de la séance</span></a>
+          <a href="https://live.euronext.com/fr/markets/paris" target="_blank" rel="noopener noreferrer">Euronext Paris<span>Le site officiel de la Bourse de Paris</span></a>
+          <a href="https://www.lafinancepourtous.com/" target="_blank" rel="noopener noreferrer">La finance pour tous<span>Pédagogie financière (institut public)</span></a>
+          <a href="https://www.amf-france.org/fr/espace-epargnants" target="_blank" rel="noopener noreferrer">AMF — Espace épargnants<span>Le régulateur : risques, arnaques, bases de l'investissement</span></a>
+          <a href="https://www.boursorama.com/bourse/actualites/" target="_blank" rel="noopener noreferrer">Actualités des marchés<span>Ce qui fait bouger les cours aujourd'hui</span></a>
+          <a href="https://www.service-public.fr/particuliers/vosdroits/F22449" target="_blank" rel="noopener noreferrer">Le PEA — Service-Public.fr<span>Règles officielles du Plan d'Épargne en Actions</span></a>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:0">Ces sites sont extérieurs à l'outil : les cours qu'ils affichent sont les cours réels, qui peuvent différer de ceux du simulateur.</p>
       </details>
 
       <p class="switchg">Vous n'êtes pas ce groupe ? <a id="switchGroup">Changer de groupe</a></p>
@@ -423,6 +449,8 @@ const INSTRUMENTS = [
   ...ETFS.map(([id,name,base,p,syn])    => ({id,name,cat:"etf",   pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn})),
   ...BONDS.map(([id,name,base,p,syn])   => ({id,name,cat:"oblig", pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn})),
 ];
+const YSYM = { MT:"MT.AS", STM:"STMPA.PA", STLA:"STLAP.PA", ANX:"PANX.PA" };
+INSTRUMENTS.forEach(i => { i.ysym = YSYM[i.id] || (i.id + ".PA"); });
 const BY_ID = {}; INSTRUMENTS.forEach(i => BY_ID[i.id]=i);
 const CAT_LABEL = {action:"Action", etf:"ETF", oblig:"Monétaire"};
 const CAT_BADGE = {action:"b-action", etf:"b-etf", oblig:"b-oblig"};
@@ -576,7 +604,7 @@ function buildMarket(){
   body.innerHTML=list.map(i=>{
     const synBadge=i.syn?`<span class="badge b-syn">synthétique</span>`:"";
     return `<tr>
-      <td class="l"><div class="nm">${i.name}</div><div class="tk">${i.id}</div></td>
+      <td class="l"><div class="nm">${i.name}</div><div class="tk">${i.id} · <a class="fiche" href="https://finance.yahoo.com/quote/${i.ysym}" target="_blank" rel="noopener noreferrer">fiche</a></div></td>
       <td class="l"><span class="badge ${CAT_BADGE[i.cat]}">${CAT_LABEL[i.cat]}</span> <span class="badge b-pea">PEA</span> ${synBadge}</td>
       <td class="px" data-px="${i.id}">—</td>
       <td class="mono" data-var="${i.id}">—</td>
@@ -603,7 +631,7 @@ function sparkSVG(i){
     for(let k=0;k<=N;k++){ pts.push(priceAt(i, Math.round(tick*k/N))); }
   }
   let mn=Math.min(...pts), mx=Math.max(...pts); if(mx-mn<1e-9){ mx+=1; mn-=1; }
-  const W=76,H=22, d=pts.map((v,k)=>{ const x=(k/(pts.length-1))*W, y=H-2-((v-mn)/(mx-mn))*(H-4); return (k?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }).join(" ");
+  const W=64,H=22, d=pts.map((v,k)=>{ const x=(k/(pts.length-1))*W, y=H-2-((v-mn)/(mx-mn))*(H-4); return (k?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }).join(" ");
   const col=pts[pts.length-1]>=pts[0]?"#157A4D":"#C0392B";
   return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${d}" fill="none" stroke="${col}" stroke-width="1.5"/></svg>`;
 }
@@ -686,14 +714,54 @@ function drawBigChart(){ const c=$("#bigChart"); if(!c) return; const ctx=c.getC
     const lx=X(s.data.length-1),ly=Y(s.data[s.data.length-1]); ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(lx,ly,3,0,7); ctx.fill(); });
   $("#legend").innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join(""); }
 
-/* ----- dispatcher ----- */
-function enterDesk(){ updateKpis(); buildMarket(); renderTx(); drawSpark(); }
+/* Période couverte par la colonne Évolution, et état de consultation */
+function evoPeriode(){ return realOn() ? "aujourd'hui" : "depuis l'ouverture de la partie"; }
+function updateEnTetes(){
+  const tv=$("#thVar"), te=$("#thEvo"), si=$("#srcInfo");
+  if(tv) tv.innerHTML = realOn() ? "Variation<br>depuis hier soir" : "Variation<br>depuis le début";
+  if(te) te.innerHTML = realOn() ? "Évolution<br>aujourd'hui" : "Évolution<br>depuis le début";
+  if(si){
+    if(realOn()){ const d=new Date(REAL.at), p=x=>String(x).padStart(2,"0");
+      si.textContent = `Cours réels · mis à jour ${p(d.getHours())}:${p(d.getMinutes())}`; }
+    else si.textContent = "Cours simulés";
+  }
+}
+function updateReadOnly(){
+  const box=$("#readOnly"); if(!box) return;
+  const st=marketStatus();
+  if(st==="live"){ box.style.display="none"; return; }
+  box.style.display="block";
+  box.innerHTML = realOn()
+    ? "<b>Mode consultation.</b> Le marché n'est pas ouvert par votre professeur : vous pouvez suivre la valeur de votre portefeuille, qui évolue avec les cours réels, mais les ordres sont désactivés."
+    : "<b>Mode consultation.</b> Le marché est fermé ou en pause : les cours sont figés et les ordres désactivés. Vous pouvez consulter vos positions et votre carnet d'ordres.";
+}
+async function actualiser(){
+  const b=$("#refreshBtn"); if(b){ b.disabled=true; b.textContent="Actualisation…"; }
+  try{
+    if(CFG && CFG.realtime && CFG.realtime.mode==="live" && CFG.realtime.url) await fetchReal(true);
+    await pollCfgPf();                    // recharge config + portefeuilles depuis la base
+    buildMarket(); updateKpis(); renderTx(); drawSpark(); updateEnTetes(); updateReadOnly();
+    toast("Cours et portefeuille actualisés.");
+  }catch(e){ toast("Actualisation impossible pour le moment.",true); }
+  finally{ if(b){ b.disabled=false; b.textContent="Actualiser"; } }
+}
+async function pollCfgPf(){
+  if(!FBDB) return;
+  try{
+    const c=await new Promise(res=>{ FBM.get(FBM.ref(FBDB,"cfg")).then(s=>res(s.val())).catch(()=>res(null)); });
+    if(c) CFG=c;
+    const p=await new Promise(res=>{ FBM.get(FBM.ref(FBDB,"pf")).then(s=>res(s.val())).catch(()=>res(null)); });
+    if(p) PFS=p;
+  }catch(e){}
+}
+
+function enterDesk(){ updateKpis(); buildMarket(); renderTx(); drawSpark(); updateEnTetes(); updateReadOnly(); }
 function paint(){ renderStatus();
   if(CURVIEW==="trade"){ $("#groupPick").style.display=MY?"none":"block"; $("#groupDesk").style.display=MY?"block":"none"; MY?enterDesk():renderPicker(); }
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"){ $("#gate").style.display=PROF_OK?"none":"block"; $("#profPanel").style.display=PROF_OK?"block":"none"; if(PROF_OK) fillProf(); } }
 function liveTick(){ renderStatus(); renderTape();
-  if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); }
+  if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); updateEnTetes(); updateReadOnly(); }
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfGroupDetail(); } }
 
@@ -849,6 +917,7 @@ document.addEventListener("click", async (e)=>{
     if(t.dataset.cat){ FILTER_CAT=t.dataset.cat; document.querySelectorAll("[data-cat]").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===FILTER_CAT)); buildMarket(); return; }
   }
   const pgBtn=e.target.closest("[data-pg]"); if(pgBtn){ PROF_GROUP=pgBtn.dataset.pg; renderProfGroups(); return; }
+  if(e.target.id==="refreshBtn") return actualiser();
   if(e.target.id==="switchGroup"){ MY=null; $("#groupDesk").style.display="none"; $("#groupPick").style.display="block"; renderPicker(); }
   if(e.target.id==="pinBtn"){ const v=$("#pinIn").value.trim(); if(v===CFG.teacherPin){ PROF_OK=true; $("#gate").style.display="none"; $("#profPanel").style.display="block"; fillProf(); } else toast("Code incorrect.",true); }
   if(e.target.id==="mStart") profStart();
