@@ -35,6 +35,7 @@ body{font-family:var(--body); color:var(--slate); background:var(--paper); -webk
 .brand .mark{font-family:var(--disp); font-weight:800; font-size:20px; letter-spacing:-.01em; color:#fff}
 .brand .mark .b{color:var(--gold)}
 .brand .sub{font-size:11px; color:#9DB2C9; letter-spacing:.14em; text-transform:uppercase; font-weight:600}
+.brand .ver{font-family:var(--mono); font-size:10.5px; color:var(--gold); border:1px solid rgba(184,134,11,.5); border-radius:5px; padding:1px 6px; margin-left:4px}
 .status{display:flex; align-items:center; gap:8px; font-size:12.5px; color:#cfe}
 .dot{width:9px;height:9px;border-radius:50%}
 .dot.live{background:#34d399; animation:pulse 1.6s infinite}
@@ -160,7 +161,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v4 · 9 sept.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
