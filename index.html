@@ -184,10 +184,10 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       <p class="lede" id="deskLede"></p>
 
       <div class="kpis">
-        <div class="kpi"><div class="lab">Valeur totale</div><div class="val big" id="kTotal">—</div><div class="delta" id="kTotalD">—</div></div>
-        <div class="kpi"><div class="lab">Liquidités</div><div class="val" id="kCash">—</div><div class="delta flat">disponibles</div></div>
-        <div class="kpi"><div class="lab">Titres détenus</div><div class="val" id="kInvest">—</div><div class="delta flat">valeur de marché</div></div>
-        <div class="kpi"><div class="lab">Classement</div><div class="val" id="kRank">—</div><div class="delta flat">parmi les groupes</div></div>
+        <div class="kpi"><div class="lab">Valeur totale du portefeuille</div><div class="val big" id="kTotal">—</div><div class="delta" id="kTotalD">—</div></div>
+        <div class="kpi"><div class="lab">Argent disponible</div><div class="val" id="kCash">—</div><div class="delta flat">pour acheter</div></div>
+        <div class="kpi"><div class="lab">Valeur des titres détenus</div><div class="val" id="kInvest">—</div><div class="delta flat">au cours actuel</div></div>
+        <div class="kpi"><div class="lab">Rang de mon groupe</div><div class="val" id="kRank">—</div><div class="delta flat">parmi les groupes</div></div>
       </div>
 
       <div class="card tablecard" style="margin-bottom:20px">
@@ -199,13 +199,13 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
             <button class="chip" data-cat="all" aria-pressed="true">Tout</button>
             <button class="chip" data-cat="action" aria-pressed="false">Actions CAC 40</button>
             <button class="chip" data-cat="etf" aria-pressed="false">ETF</button>
-            <button class="chip" data-cat="oblig" aria-pressed="false">Obligations</button>
+            <button class="chip" data-cat="oblig" aria-pressed="false">Monétaire</button>
           </div>
           <input class="search" id="search" type="search" placeholder="Rechercher un titre…" aria-label="Rechercher un titre">
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Titre</th><th class="l">Classe</th><th>Cours</th><th>Var. séance</th><th>Tendance</th><th>Ma position</th><th>Quantité</th><th>Action</th></tr></thead>
+            <thead><tr><th class="l">Valeur</th><th class="l">Type de titre</th><th>Cours actuel</th><th>Variation depuis le début</th><th>Évolution du cours</th><th>Ce que je détiens</th><th>Quantité à négocier</th><th>Passer un ordre</th></tr></thead>
             <tbody id="mktBody"></tbody>
           </table>
         </div>
@@ -215,7 +215,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <div class="tablehead"><h2>Carnet d'ordres</h2><span class="pos" id="txCount">0 opération</span></div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Heure marché</th><th class="l">Sens</th><th class="l">Titre</th><th>Quantité</th><th>Cours</th><th>Frais</th><th>Montant net</th></tr></thead>
+            <thead><tr><th class="l">Heure de l'ordre</th><th class="l">Achat ou vente</th><th class="l">Valeur</th><th>Quantité</th><th>Cours payé</th><th>Frais</th><th>Effet sur mes liquidités</th></tr></thead>
             <tbody id="txBody"><tr><td colspan="7" class="empty">Aucune opération pour l'instant.</td></tr></tbody>
           </table>
         </div>
@@ -224,7 +224,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       <details class="peda">
         <summary>Note pédagogique — éligibilité au PEA</summary>
         <p>Le <b>PEA</b> n'accepte que des <b>actions</b> de sociétés de l'Union européenne / EEE et des <b>ETF/OPCVM</b> investis à ≥ 75 % en actions de ces zones. Les 40 valeurs du CAC 40 sont éligibles (y compris Airbus et Stellantis, sièges aux Pays-Bas, ou ArcelorMittal au Luxembourg).</p>
-        <p>Les <b>obligations en direct</b> (OAT, Bund, obligations d'entreprise) sont <b>exclues</b> du PEA car ce sont des titres de créance. Les lignes obligataires proposées ici portent le badge <span class="badge b-syn">synthétique</span> : ce sont des ETF qui détiennent un panier d'actions européennes éligibles et en échangent la performance, par un contrat de <i>swap</i>, contre celle d'un indice obligataire ou monétaire. C'est ce montage, encadré par la directive UCITS, qui permet d'avoir de l'obligataire dans un PEA. Bon sujet de cours : expliquer comment la règle « actions uniquement » est contournée légalement.</p>
+        <p>Les <b>obligations en direct</b> (OAT, Bund, obligations d'entreprise) sont <b>exclues</b> du PEA : ce sont des titres de créance. Il n'existe d'ailleurs plus aujourd'hui d'ETF obligataire diversifié éligible au PEA — l'ancien « Amundi PEA Obligations d'État Euro » a été reclassé en fonds <b>monétaire</b> en 2024. La seule option pour placer des liquidités reste donc ce fonds monétaire, marqué <span class="badge b-syn">synthétique</span> : il détient un panier d'actions européennes éligibles et en échange la performance, par un contrat de <i>swap</i>, contre celle d'un indice monétaire (€STR). Bon sujet de cours : pourquoi le PEA, réservé aux actions, ne permet presque aucune diversification obligataire.</p>
         <p>Cours et frais sont simulés ; aucune somme réelle n'est engagée.</p>
       </details>
 
@@ -295,6 +295,23 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
           <div class="field"><label for="feeIn">Frais de courtage par opération (%)</label><input id="feeIn" type="number" min="0" max="5" step="0.05" value="0.20"><div class="hint">Mettez 0 pour des transactions sans frais.</div></div>
           <div class="field"><label for="pinSet">Code enseignant</label><input id="pinSet" type="text" value="1234"></div>
         </div>
+      </div>
+
+      <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Source des cours</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px">Par défaut, les cours sont simulés. Avec un relais installé (voir le guide), vous pouvez partir des cours réels ou les suivre en direct.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="margin:0;min-width:230px"><label for="rtMode">Mode</label>
+            <select id="rtMode">
+              <option value="sim">Cours simulés (recommandé)</option>
+              <option value="live">Cours réels en direct (Yahoo, différés ~15 min)</option>
+            </select></div>
+          <div class="field" style="margin:0;flex:1;min-width:260px"><label for="rtUrl">Adresse du relais</label>
+            <input id="rtUrl" type="url" placeholder="https://mon-relais.workers.dev"></div>
+          <button class="btn btn-ghost" id="rtTest">Tester</button>
+          <button class="btn btn-gold" id="rtAnchor">Partir des cours réels</button>
+        </div>
+        <p class="hint" style="font-size:12px;margin-top:10px" id="rtState">—</p>
       </div>
 
       <div class="card pad" style="margin-top:16px">
@@ -375,32 +392,31 @@ const PROF = {
 };
 // CAC 40 (révision du 22/12/2025, en vigueur jusqu'au 22/06/2026). Cours de départ indicatifs.
 const STOCKS = [
-  ["SU","Schneider Electric",235,"mid"], ["TTE","TotalEnergies",58,"mid"], ["MC","LVMH",620,"lux"],
-  ["AIR","Airbus",175,"mid"], ["SAN","Sanofi",95,"def"], ["AI","Air Liquide",180,"def"],
-  ["SAF","Safran",255,"mid"], ["BNP","BNP Paribas",72,"mid"], ["OR","L'Oréal",360,"lux"],
-  ["CS","AXA",38,"def"], ["EL","EssilorLuxottica",250,"lux"], ["DG","Vinci",118,"mid"],
-  ["RMS","Hermès International",2300,"lux"], ["ENGI","Engie",18,"def"], ["GLE","Société Générale",45,"cyc"],
-  ["BN","Danone",70,"def"], ["MT","ArcelorMittal",28,"cyc"], ["LR","Legrand",110,"mid"],
-  ["SGO","Saint-Gobain",95,"mid"], ["ORA","Orange",12,"def"], ["HO","Thales",255,"mid"],
-  ["VIE","Veolia",32,"def"], ["ML","Michelin",33,"mid"], ["KER","Kering",230,"cyc"],
-  ["PUB","Publicis Groupe",95,"mid"], ["STM","STMicroelectronics",28,"tech"], ["CAP","Capgemini",155,"mid"],
-  ["ACA","Crédit Agricole",16,"cyc"], ["RI","Pernod Ricard",95,"def"], ["DSY","Dassault Systèmes",33,"tech"],
-  ["STLA","Stellantis",12,"cyc"], ["URW","Unibail-Rodamco-Westfield",80,"cyc"], ["CA","Carrefour",15,"def"],
-  ["ENX","Euronext",135,"mid"], ["FGR","Eiffage",130,"mid"], ["BVI","Bureau Veritas",28,"mid"],
-  ["EN","Bouygues",38,"mid"], ["AC","Accor",48,"mid"], ["ERF","Eurofins Scientific",58,"mid"],
-  ["RNO","Renault",48,"cyc"]
+  ["SU","Schneider Electric",297.65,"mid"], ["TTE","TotalEnergies",78.39,"mid"], ["MC","LVMH",422.3,"lux"],
+  ["AIR","Airbus",197.4,"mid"], ["SAN","Sanofi",73.9,"def"], ["AI","Air Liquide",172.0,"def"],
+  ["SAF","Safran",329.1,"mid"], ["BNP","BNP Paribas",102.66,"mid"], ["OR","L'Oréal",385.9,"lux"],
+  ["CS","AXA",43.3,"def"], ["EL","EssilorLuxottica",148.05,"lux"], ["DG","Vinci",113.85,"mid"],
+  ["RMS","Hermès International",1437.5,"lux"], ["ENGI","Engie",24.43,"def"], ["GLE","Société Générale",74.14,"cyc"],
+  ["BN","Danone",64.28,"def"], ["MT","ArcelorMittal",66.52,"cyc"], ["LR","Legrand",145.45,"mid"],
+  ["SGO","Saint-Gobain",73.72,"mid"], ["ORA","Orange",15.345,"def"], ["HO","Thales",228.7,"mid"],
+  ["VIE","Veolia",32.32,"def"], ["ML","Michelin",34.18,"mid"], ["KER","Kering",239.8,"cyc"],
+  ["PUB","Publicis Groupe",98.84,"mid"], ["STM","STMicroelectronics",44.92,"tech"], ["CAP","Capgemini",104.65,"mid"],
+  ["ACA","Crédit Agricole",18.535,"cyc"], ["RI","Pernod Ricard",59.86,"def"], ["DSY","Dassault Systèmes",20.56,"tech"],
+  ["STLA","Stellantis",4.7,"cyc"], ["URW","Unibail-Rodamco-Westfield",94.36,"cyc"], ["CA","Carrefour",16.585,"def"],
+  ["ENX","Euronext",159.0,"mid"], ["FGR","Eiffage",109.4,"mid"], ["BVI","Bureau Veritas",27.58,"mid"],
+  ["EN","Bouygues",45.04,"mid"], ["AC","Accor",46.6,"mid"], ["ERF","Eurofins Scientific",71.0,"mid"],
+  ["RNO","Renault",29.41,"cyc"]
 ];
 // ETF actions éligibles PEA  [id, nom, cours, profil, synthétique]
 const ETFS = [
-  ["CAC","ETF CAC 40",110,"etf",false], ["MSE","ETF Euro Stoxx 50",95,"etf",false],
-  ["CEU","ETF MSCI Europe",30,"etf",false], ["PE500","ETF S&P 500 (PEA)",40,"etf",true],
-  ["CW8","ETF MSCI World (PEA)",600,"etf",true], ["ANX","ETF Nasdaq 100 (PEA)",38,"etfx",true],
-  ["PAEEM","ETF MSCI Émergents (PEA)",28,"etfx",true], ["PMEH","ETF Immobilier Europe (PEA)",20,"reit",false]
+  ["CAC","ETF CAC 40",83.51,"etf",false], ["MSE","ETF Euro Stoxx 50",72.58,"etf",false],
+  ["CEU","ETF MSCI Europe",442.7,"etf",false], ["PE500","ETF S&P 500 (PEA)",54.95,"etf",true],
+  ["CW8","ETF MSCI World (PEA)",689.94,"etf",true], ["ANX","ETF Nasdaq 100 (PEA)",80.0,"etfx",true],
+  ["PAEEM","ETF MSCI Émergents (PEA)",36.745,"etfx",true], ["PMEH","ETF Immobilier Europe (PEA)",12.56,"reit",false]
 ];
 // Obligations éligibles PEA (réplication synthétique)  [id, nom, cours, profil, synthétique]
 const BONDS = [
-  ["OBLG","Amundi PEA Obligations d'État Euro",100,"bond",true],
-  ["MONE","Amundi PEA Euro Court Terme (€STR)",115,"mon",true]
+  ["OBLI","Amundi PEA Euro Court Terme (€STR)",9.798,"mon",true]
 ];
 const INSTRUMENTS = [
   ...STOCKS.map(([id,name,base,p])      => ({id,name,cat:"action",pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn:false})),
@@ -408,7 +424,7 @@ const INSTRUMENTS = [
   ...BONDS.map(([id,name,base,p,syn])   => ({id,name,cat:"oblig", pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn})),
 ];
 const BY_ID = {}; INSTRUMENTS.forEach(i => BY_ID[i.id]=i);
-const CAT_LABEL = {action:"Action", etf:"ETF", oblig:"Obligation"};
+const CAT_LABEL = {action:"Action", etf:"ETF", oblig:"Monétaire"};
 const CAT_BADGE = {action:"b-action", etf:"b-etf", oblig:"b-oblig"};
 
 /* =====================================================================
@@ -419,10 +435,49 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.im
 function gauss(rng){ let u=0,v=0; while(u===0)u=rng(); while(v===0)v=rng(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
 const PATHS = {};
 function pathFor(i){ if(!PATHS[i.id]) PATHS[i.id]={prices:[i.base], rng:mulberry32(strSeed(i.id))}; return PATHS[i.id]; }
-function priceAt(i, tick){ if(tick<0) tick=0; const p=pathFor(i);
+/* Cours réels (Yahoo via relais) : REAL.quotes[id] = {price, prevClose, serie} */
+let REAL = { on:false, at:0, quotes:{}, error:null, loading:false };
+function realOn(){ return !!(CFG && CFG.realtime && CFG.realtime.mode==="live" && REAL.on); }
+function realPrice(i){ const q=REAL.quotes[i.id]; return (q && typeof q.price==="number") ? q.price : null; }
+
+function priceAt(i, tick){
+  if(realOn()){ const p=realPrice(i); if(p!=null) return p; }   // cours réel prioritaire
+  if(tick<0) tick=0; const p=pathFor(i);
   while(p.prices.length<=tick){ const prev=p.prices[p.prices.length-1]; const z=gauss(p.rng);
     p.prices.push(prev*Math.exp((i.drift - 0.5*i.sigma*i.sigma) + i.sigma*z)); }
   return p.prices[tick];
+}
+/* Référence pour la variation affichée : clôture de la veille en mode réel, prix de départ sinon */
+function refPrice(i){ if(realOn()){ const q=REAL.quotes[i.id];
+    if(q && typeof q.prevClose==="number" && q.prevClose>0) return q.prevClose; }
+  return i.base; }
+
+async function fetchReal(force){
+  const url = CFG && CFG.realtime && CFG.realtime.url;
+  if(!url){ REAL.error="Aucune adresse de relais renseignée."; REAL.on=false; return false; }
+  if(REAL.loading) return false;
+  REAL.loading=true;
+  try{
+    const r = await fetch(url.replace(/\/+$/,"") + "/quotes" + (force?"?force=1":""), {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP "+r.status);
+    const j = await r.json();
+    if(!j || !j.quotes) throw new Error("réponse inattendue");
+    REAL.quotes=j.quotes; REAL.at=j.updatedAt||Date.now(); REAL.on=true; REAL.error=null;
+    return true;
+  }catch(e){ REAL.error=e.message||"échec"; if(!Object.keys(REAL.quotes).length) REAL.on=false; return false; }
+  finally{ REAL.loading=false; }
+}
+/* Ancrage : fige les cours réels comme prix de départ de la simulation */
+async function anchorToReal(){
+  const ok = await fetchReal(true);
+  if(!ok){ toast("Cours réels indisponibles : "+(REAL.error||""),true); return false; }
+  let n=0; INSTRUMENTS.forEach(i=>{ const q=REAL.quotes[i.id];
+    if(q && typeof q.price==="number" && q.price>0){ i.base=q.price; n++; } });
+  for(const k in PATHS) delete PATHS[k];
+  CFG.market={started:false,running:false,startedAt:null,accumTicks:0,tickMs:CFG.market.tickMs};
+  await saveCfg();
+  toast(`${n} cours réels repris comme prix de départ. Marché réinitialisé.`);
+  return true;
 }
 function currentTick(){ const m=CFG&&CFG.market; if(!m||!m.started) return 0;
   let t=m.accumTicks||0; if(m.running&&m.startedAt) t+=Math.floor((Date.now()-m.startedAt)/m.tickMs); return t; }
@@ -438,7 +493,8 @@ let SPARK_N=0;
 
 function defaultCfg(){ const groups=[]; for(let i=1;i<=6;i++) groups.push({id:"g"+i,name:"Groupe "+i});
   return { v:2, budget:10000, feePct:0.20, teacherPin:"1234", groups,
-    market:{started:false,running:false,startedAt:null,accumTicks:0,tickMs:10000}, resetToken:0 }; }
+    market:{started:false,running:false,startedAt:null,accumTicks:0,tickMs:10000}, resetToken:0,
+    realtime:{ mode:"sim", url:"" } }; }
 function freshPf(id){ return { id, cash:CFG.budget, holdings:{}, txs:[], rt:CFG.resetToken }; }
 function getPf(id){ let pf=PFS[id]; if(!(pf && pf.rt===CFG.resetToken)) pf=freshPf(id);
   if(!pf.holdings) pf.holdings={}; if(!pf.txs) pf.txs=[]; return pf; }
@@ -501,7 +557,7 @@ function renderStatus(){ const st=marketStatus(),d=$("#dot"),x=$("#statusTxt");
   d.className="dot "+(st==="live"?"live":st==="pause"?"pause":"off");
   x.textContent= st==="live"?"Marché en direct":st==="pause"?"Marché en pause":"Marché non démarré"; }
 function renderTape(){ const t=currentTick();
-  const make=()=>INSTRUMENTS.map(i=>{ const p=priceAt(i,t),v=(p/i.base-1)*100,up=v>=0;
+  const make=()=>INSTRUMENTS.map(i=>{ const p=priceAt(i,t),v=(p/refPrice(i)-1)*100,up=v>=0;
     return `<span class="tape-item"><span class="tk">${i.id}</span><span class="px">${pxf.format(p)}</span><span class="${up?'tape-up':'tape-dn'}">${pct(v)}</span></span>`; }).join("");
   $("#tape").innerHTML=make()+make(); }
 function renderPicker(){ const t=currentTick();
@@ -539,8 +595,13 @@ function buildMarket(){
 function drawAllSparks(){ for(const id in ROWREFS){ const r=ROWREFS[id], i=BY_ID[id];
   if(r&&r.spk&&i){ try{ r.spk.innerHTML=sparkSVG(i); }catch(e){} } } }
 function sparkSVG(i){
-  const tick=currentTick(), N=24, pts=[];
-  for(let k=0;k<=N;k++){ pts.push(priceAt(i, Math.round(tick*k/N))); }
+  let pts=[];
+  if(realOn()){ const q=REAL.quotes[i.id];
+    if(q && Array.isArray(q.serie) && q.serie.length>1) pts=q.serie.slice(); }
+  if(pts.length<2){
+    const tick=currentTick(), N=24;
+    for(let k=0;k<=N;k++){ pts.push(priceAt(i, Math.round(tick*k/N))); }
+  }
   let mn=Math.min(...pts), mx=Math.max(...pts); if(mx-mn<1e-9){ mx+=1; mn-=1; }
   const W=76,H=22, d=pts.map((v,k)=>{ const x=(k/(pts.length-1))*W, y=H-2-((v-mn)/(mx-mn))*(H-4); return (k?"L":"M")+x.toFixed(1)+" "+y.toFixed(1); }).join(" ");
   const col=pts[pts.length-1]>=pts[0]?"#157A4D":"#C0392B";
@@ -558,7 +619,7 @@ function updateMarket(){
       pos:body.querySelector(`[data-pos="${id}"]`), buy:body.querySelector(`[data-buy="${id}"]`), sell:body.querySelector(`[data-sell="${id}"]`),
       spk:body.querySelector(`[data-spark="${id}"]`) }; }
     try{
-      const p=priceAt(i,t), v=(p/i.base-1)*100;
+      const p=priceAt(i,t), v=(p/refPrice(i)-1)*100;
       if(r.px){ r.px.textContent=pxf.format(p)+" €"; }
       if(r.vr){ r.vr.textContent=pct(v); r.vr.className="mono "+cls(v); }
       const q=pf.holdings[id]||0;
@@ -579,11 +640,13 @@ function updateKpis(){
   $("#kCash").textContent=eur2.format(pf.cash); $("#kInvest").textContent=eur2.format(hv);
   const rk=ranking(t); $("#kRank").textContent=(rk.findIndex(r=>r.id===MY)+1)+" / "+CFG.groups.length;
 }
+function txTime(x){ if(x&&x.ts){ const d=new Date(x.ts), p=n=>String(n).padStart(2,"0");
+  return `${p(d.getHours())}:${p(d.getMinutes())}`; } return "t+"+(x?x.tick:"?"); }
 function renderTx(){ const pf=getPf(MY); $("#txCount").textContent=pf.txs.length+(pf.txs.length>1?" opérations":" opération");
   const tb=$("#txBody");
   if(!pf.txs.length){ tb.innerHTML=`<tr><td colspan="7" class="empty">Aucune opération pour l'instant.</td></tr>`; return; }
   tb.innerHTML=pf.txs.slice().reverse().map(x=>{ const net=x.type==="BUY"?-(x.qty*x.price+x.fee):(x.qty*x.price-x.fee);
-    return `<tr><td class="l mono">t+${x.tick}</td><td class="l"><span class="badge ${x.type==="BUY"?"b-etf":"b-oblig"}">${x.type==="BUY"?"Achat":"Vente"}</span></td>
+    return `<tr><td class="l mono">${txTime(x)}</td><td class="l"><span class="badge ${x.type==="BUY"?"b-etf":"b-oblig"}">${x.type==="BUY"?"Achat":"Vente"}</span></td>
       <td class="l"><span class="tk">${x.instr}</span> ${BY_ID[x.instr]?BY_ID[x.instr].name:""}</td>
       <td class="mono">${x.qty}</td><td class="px">${pxf.format(x.price)} €</td><td class="mono">${eur2.format(x.fee)}</td>
       <td class="mono ${net>=0?'up':'dn'}">${net>=0?"+":""}${eur2.format(net)}</td></tr>`; }).join(""); }
@@ -640,17 +703,32 @@ function liveTick(){ renderStatus(); renderTape();
 async function doTrade(id,side){
   if(marketStatus()!=="live"){ toast("Le marché n'est pas ouvert.",true); return; }
   if(!MY){ toast("Choisissez d'abord un groupe.",true); return; }
-  const pf=getPf(MY); const i=BY_ID[id], t=currentTick(), price=priceAt(i,t);
+  const pf=getPf(MY); const i=BY_ID[id];
   const qEl=$(`[data-qty="${id}"]`); let qty=parseInt(qEl&&qEl.value,10);
   if(!qty||qty<1){ toast("Quantité invalide.",true); return; }
+
+  // Contrôles préalables (sur le cours affiché au moment du clic)
+  const shown=priceAt(i,currentTick()), sGross=qty*shown, sFee=sGross*CFG.feePct/100;
+  if(side==="BUY" && sGross+sFee>pf.cash+1e-9){ toast("Argent disponible insuffisant pour cet achat.",true); return; }
+  if(side==="SELL"){ const have=pf.holdings[id]||0;
+    if(qty>have){ toast(have?`Vous ne détenez que ${have} titre(s) ${i.id}.`:`Vous ne détenez aucun titre ${i.id}.`,true); return; } }
+
+  // Confirmation : récapitulatif avant exécution
+  const recap = side==="BUY"
+    ? `Confirmer l'ACHAT ?\n\n${qty} × ${i.name} (${i.id})\nCours actuel : ${pxf.format(shown)} €\nMontant : ${eur2.format(sGross)}\nFrais de courtage : ${eur2.format(sFee)}\nTotal à payer : ${eur2.format(sGross+sFee)}\n\nArgent disponible après : ${eur2.format(pf.cash-sGross-sFee)}\n\nLe cours peut varier légèrement d'ici l'exécution.`
+    : `Confirmer la VENTE ?\n\n${qty} × ${i.name} (${i.id})\nCours actuel : ${pxf.format(shown)} €\nMontant : ${eur2.format(sGross)}\nFrais de courtage : ${eur2.format(sFee)}\nTotal reçu : ${eur2.format(sGross-sFee)}\n\nArgent disponible après : ${eur2.format(pf.cash+sGross-sFee)}\n\nLe cours peut varier légèrement d'ici l'exécution.`;
+  if(!window.confirm(recap)){ toast("Ordre annulé."); return; }
+
+  // Exécution au cours en vigueur à cet instant
+  const t=currentTick(), price=priceAt(i,t);
   const gross=qty*price, fee=gross*CFG.feePct/100;
-  if(side==="BUY"){ if(gross+fee>pf.cash+1e-9){ toast("Liquidités insuffisantes.",true); return; }
+  if(side==="BUY"){ if(gross+fee>pf.cash+1e-9){ toast("Argent disponible insuffisant (le cours a monté).",true); return; }
     pf.cash-=gross+fee; pf.holdings[id]=(pf.holdings[id]||0)+qty; }
-  else { const have=pf.holdings[id]||0; if(qty>have){ toast(`Vous ne détenez que ${have} ${id}.`,true); return; }
+  else { const have=pf.holdings[id]||0; if(qty>have){ toast(`Vous ne détenez que ${have} titre(s) ${i.id}.`,true); return; }
     pf.cash+=gross-fee; pf.holdings[id]=have-qty; if(pf.holdings[id]<=0) delete pf.holdings[id]; }
   pf.txs.push({tick:t,type:side,instr:id,qty,price,fee,ts:Date.now()});
   await savePf(pf);
-  toast(`${side==="BUY"?"Achat":"Vente"} : ${qty} × ${i.id} à ${pxf.format(price)} €`);
+  toast(`${side==="BUY"?"Achat effectué":"Vente effectuée"} : ${qty} × ${i.id} à ${pxf.format(price)} €`);
   updateKpis(); updateMarket(); renderTx(); drawSpark();
 }
 
@@ -659,13 +737,31 @@ async function doTrade(id,side){
    ===================================================================== */
 function fillProf(){ $("#budgetIn").value=CFG.budget; $("#feeIn").value=CFG.feePct; $("#pinSet").value=CFG.teacherPin;
   $("#speedSel").value=String(CFG.market.tickMs); $("#nbGroups").value=String(CFG.groups.length); renderGroupNames(); renderMState();
-  renderProfGroups(); }
+  renderProfGroups(); fillRt(); }
+function fillRt(){ const rt=(CFG.realtime||{mode:"sim",url:""});
+  const m=$("#rtMode"), u=$("#rtUrl"); if(m) m.value=rt.mode==="live"?"live":"sim"; if(u) u.value=rt.url||"";
+  renderRtState(); }
+function renderRtState(){ const el=$("#rtState"); if(!el) return;
+  const rt=CFG.realtime||{mode:"sim"};
+  if(rt.mode!=="live"){ el.textContent="Cours simulés — les mouvements sont générés par l'outil."; el.style.color="var(--muted)"; return; }
+  if(REAL.error){ el.textContent="Cours réels indisponibles ("+REAL.error+") — l'outil continue en simulation."; el.style.color="#C0392B"; return; }
+  if(!REAL.on){ el.textContent="Connexion au relais en cours…"; el.style.color="var(--muted)"; return; }
+  const n=Object.values(REAL.quotes).filter(q=>q&&q.price!=null).length;
+  const d=new Date(REAL.at), p=x=>String(x).padStart(2,"0");
+  const any=Object.values(REAL.quotes).find(q=>q&&q.state);
+  const ferme = any && any.state && any.state!=="REGULAR";
+  el.textContent=`Cours réels actifs — ${n} valeurs, mise à jour ${p(d.getHours())}:${p(d.getMinutes())}`
+    + (ferme?"  ⚠ Bourse fermée : les cours ne bougeront pas.":"");
+  el.style.color= ferme?"#B8860B":"#157A4D"; }
 function renderGroupNames(){ const n=parseInt($("#nbGroups").value,10); let html="";
   for(let i=0;i<n;i++){ const g=CFG.groups[i]||{name:"Groupe "+(i+1)};
     html+=`<div class="field"><label>Nom du groupe ${i+1}</label><input data-gname="${i}" value="${g.name.replace(/"/g,'&quot;')}"></div>`; }
   $("#groupNames").innerHTML=html; }
 function renderMState(){ const st=marketStatus(),t=currentTick();
-  $("#mState").textContent= st==="live"?`En direct — t+${t}`:st==="pause"?`En pause — figé à t+${t}`:"Non démarré"; }
+  const heures=(t*CFG.market.tickMs)/3600000;
+  let txt = st==="live"?`En direct — ${t} variations écoulées`:st==="pause"?`En pause — figé après ${t} variations`:"Non démarré";
+  if(st!=="off" && heures>=2){ txt += `  ⚠ Le marché tourne depuis ${heures.toFixed(1)} h : les cours ont beaucoup dérivé. Pensez à « Réinitialiser le marché » avant la prochaine séance, et à mettre en pause en fin de cours.`; }
+  const el=$("#mState"); el.textContent=txt; el.style.color = (st!=="off"&&heures>=2)?"#C0392B":"var(--muted)"; }
 async function profStart(){ if(!CFG.market.started){ CFG.market={started:true,running:true,startedAt:Date.now(),accumTicks:0,tickMs:CFG.market.tickMs}; }
   else if(!CFG.market.running){ CFG.market.running=true; CFG.market.startedAt=Date.now(); }
   await saveCfg(); renderMState(); renderStatus(); toast("Marché ouvert."); }
@@ -716,7 +812,10 @@ async function profSave(){ CFG.budget=Math.max(0,parseFloat($("#budgetIn").value
   CFG.market.tickMs=parseInt($("#speedSel").value,10);
   const n=parseInt($("#nbGroups").value,10), names=[...document.querySelectorAll("[data-gname]")].map(e=>e.value.trim());
   const groups=[]; for(let i=0;i<n;i++) groups.push({id:"g"+(i+1),name:names[i]||("Groupe "+(i+1))}); CFG.groups=groups;
-  await saveCfg(); toast("Configuration enregistrée."); renderMState(); }
+  const rm=$("#rtMode"), ru=$("#rtUrl");
+  if(rm&&ru) CFG.realtime={ mode:rm.value, url:(ru.value||"").trim() };
+  await saveCfg(); toast("Configuration enregistrée."); renderMState(); renderRtState();
+  if(CFG.realtime && CFG.realtime.mode==="live") fetchReal(true).then(()=>{ renderRtState(); buildMarket(); }); }
 async function profResetPf(){ if(!confirm("Remettre tous les portefeuilles à zéro (budget de départ, aucune position) ?")) return;
   CFG.resetToken=(CFG.resetToken||0)+1; await saveCfg();
   for(const g of CFG.groups){ const pf=freshPf(g.id); await savePf(pf); } toast("Portefeuilles réinitialisés."); paint(); }
@@ -745,6 +844,11 @@ document.addEventListener("click", async (e)=>{
   if(e.target.id==="mReset") profResetMarket();
   if(e.target.id==="saveCfg") profSave();
   if(e.target.id==="resetPf") profResetPf();
+  if(e.target.id==="rtTest"){ (async()=>{ CFG.realtime={mode:$("#rtMode").value,url:($("#rtUrl").value||"").trim()};
+    $("#rtState").textContent="Test en cours…"; const ok=await fetchReal(true);
+    renderRtState(); toast(ok?"Relais joignable.":"Relais injoignable : "+(REAL.error||""), !ok); })(); }
+  if(e.target.id==="rtAnchor"){ (async()=>{ CFG.realtime={mode:$("#rtMode").value,url:($("#rtUrl").value||"").trim()};
+    await anchorToReal(); renderRtState(); renderMState(); buildMarket(); })(); }
   if(e.target.id==="expBoard"||e.target.id==="expBoard2") exportBoardCSV();
   if(e.target.id==="expPf") exportPortfoliosCSV();
   if(e.target.id==="expJson") exportJSON();
@@ -769,7 +873,11 @@ async function boot(){
   showBanner();
 }
 function start(){ switchView("trade"); renderPicker(); liveTick();
-  setInterval(liveTick,1000); }
+  setInterval(liveTick,1000);
+  // Cours réels : première récupération puis rafraîchissement toutes les 2 minutes
+  const pollReal=()=>{ if(CFG && CFG.realtime && CFG.realtime.mode==="live" && CFG.realtime.url){
+      fetchReal(false).then(ok=>{ if(ok && CURVIEW==="trade" && MY) drawAllSparks(); renderRtState(); }); } };
+  pollReal(); setInterval(pollReal,120000); }
 
 boot();
 </script>
