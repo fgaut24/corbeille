@@ -102,6 +102,7 @@ tbody tr:last-child td{border-bottom:0} tbody tr:hover{background:#F7F9FB} td.l{
 .res a{color:var(--ink); font-size:13px; text-decoration:none; border-bottom:1px solid var(--line); padding:5px 0; display:block}
 .res a:hover{color:var(--gold); border-color:var(--gold)}
 .res span{display:block; font-size:11.5px; color:var(--muted)}
+.resh{font-family:var(--disp); font-weight:700; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin:14px 0 2px}
 .trade{display:inline-flex; gap:5px; align-items:center; justify-content:flex-end}
 .qty{width:52px; padding:7px 6px; border:1px solid var(--line); border-radius:8px; font-family:var(--mono); font-size:13px; text-align:right}
 .qty:focus{outline:2px solid var(--ink); border-color:var(--ink)}
@@ -144,6 +145,7 @@ tbody tr:last-child td{border-bottom:0} tbody tr:hover{background:#F7F9FB} td.l{
 .note{background:var(--gold-soft); border:1px solid #e7d49a; border-radius:12px; padding:14px 16px; font-size:13px; color:#5e4a14}
 .note b{color:#4a3a0f}
 details.peda{margin-top:18px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:4px 16px}
+h2.secTitle{font-family:var(--disp); font-weight:800; font-size:16px; color:var(--ink); margin:26px 0 10px}
 details.peda summary{font-family:var(--disp); font-weight:700; color:var(--ink); cursor:pointer; padding:12px 0; font-size:14px}
 details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:11px 18px; border-radius:10px; font-size:13.5px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; z-index:60}
@@ -161,10 +163,11 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v4 · 9 sept.</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v6 · 9 sept.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
+      <button class="tab" role="tab" aria-selected="false" data-view="analyse">Analyse</button>
       <button class="tab" role="tab" aria-selected="false" data-view="board">Classement</button>
       <button class="tab" role="tab" aria-selected="false" data-view="prof">Enseignant</button>
     </div>
@@ -244,15 +247,33 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       <details class="peda">
         <summary>Ressources — s'informer sur les marchés</summary>
         <p style="font-size:13px;color:var(--muted);margin:2px 0 10px">Chaque valeur du tableau possède un lien « fiche » qui ouvre sa page boursière (cours, actualités, données financières). Ci-dessous, des sources fiables pour préparer vos décisions.</p>
+        <p class="resh">Cotations &amp; données de marché</p>
         <div class="res">
-          <a href="https://www.abcbourse.com/marches/palmares/xpar" target="_blank" rel="noopener noreferrer">Palmarès du jour — ABC Bourse<span>Plus fortes hausses et baisses de la séance</span></a>
           <a href="https://live.euronext.com/fr/markets/paris" target="_blank" rel="noopener noreferrer">Euronext Paris<span>Le site officiel de la Bourse de Paris</span></a>
-          <a href="https://www.lafinancepourtous.com/" target="_blank" rel="noopener noreferrer">La finance pour tous<span>Pédagogie financière (institut public)</span></a>
-          <a href="https://www.amf-france.org/fr/espace-epargnants" target="_blank" rel="noopener noreferrer">AMF — Espace épargnants<span>Le régulateur : risques, arnaques, bases de l'investissement</span></a>
-          <a href="https://www.boursorama.com/bourse/actualites/" target="_blank" rel="noopener noreferrer">Actualités des marchés<span>Ce qui fait bouger les cours aujourd'hui</span></a>
-          <a href="https://www.service-public.fr/particuliers/vosdroits/F22449" target="_blank" rel="noopener noreferrer">Le PEA — Service-Public.fr<span>Règles officielles du Plan d'Épargne en Actions</span></a>
+          <a href="https://www.abcbourse.com/marches/cotations/xpar" target="_blank" rel="noopener noreferrer">Toutes les cotations de Paris<span>Rechercher une valeur si un lien « fiche » n'aboutit pas</span></a>
+          <a href="https://www.abcbourse.com/marches/palmares/xpar" target="_blank" rel="noopener noreferrer">Palmarès du jour<span>Plus fortes hausses et baisses de la séance</span></a>
+          <a href="https://www.boursorama.com/bourse/indices/cours/1rPCAC/" target="_blank" rel="noopener noreferrer">Indice CAC 40<span>La tendance générale du marché parisien</span></a>
         </div>
-        <p style="font-size:12px;color:var(--muted);margin:0">Ces sites sont extérieurs à l'outil : les cours qu'ils affichent sont les cours réels, qui peuvent différer de ceux du simulateur.</p>
+        <p class="resh">Actualité économique et financière</p>
+        <div class="res">
+          <a href="https://www.boursorama.com/bourse/actualites/" target="_blank" rel="noopener noreferrer">Actualités des marchés<span>Ce qui fait bouger les cours aujourd'hui</span></a>
+          <a href="https://www.lesechos.fr/finance-marches" target="_blank" rel="noopener noreferrer">Les Échos — Finance &amp; Marchés<span>Le quotidien économique de référence</span></a>
+          <a href="https://www.latribune.fr/bourse/" target="_blank" rel="noopener noreferrer">La Tribune — Bourse<span>Analyses et décryptages</span></a>
+          <a href="https://www.zonebourse.com/bourse/actualites/" target="_blank" rel="noopener noreferrer">Zonebourse<span>Résultats d'entreprises et consensus d'analystes</span></a>
+        </div>
+        <p class="resh">Comprendre et apprendre</p>
+        <div class="res">
+          <a href="https://www.lafinancepourtous.com/" target="_blank" rel="noopener noreferrer">La finance pour tous<span>Pédagogie financière (institut public IEFP)</span></a>
+          <a href="https://abc-economie.banque-france.fr/" target="_blank" rel="noopener noreferrer">ABC de l'économie — Banque de France<span>Fiches claires sur la monnaie, l'épargne, les taux</span></a>
+          <a href="https://www.insee.fr/fr/statistiques" target="_blank" rel="noopener noreferrer">INSEE — Statistiques<span>Croissance, inflation, chômage : le contexte macro</span></a>
+          <a href="https://www.amf-france.org/fr/espace-epargnants/comprendre-les-produits-financiers" target="_blank" rel="noopener noreferrer">Comprendre les produits financiers — AMF<span>Actions, obligations, ETF expliqués par le régulateur</span></a>
+        </div>
+        <p class="resh">Officiel &amp; réglementation</p>
+        <div class="res">
+          <a href="https://www.service-public.fr/particuliers/vosdroits/F22449" target="_blank" rel="noopener noreferrer">Le PEA — Service-Public.fr<span>Règles officielles du Plan d'Épargne en Actions</span></a>
+          <a href="https://www.amf-france.org/fr/espace-epargnants/proteger-son-epargne" target="_blank" rel="noopener noreferrer">Protéger son épargne — AMF<span>Risques, arnaques, listes noires</span></a>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:0">Toutes ces sources sont en français. Elles sont extérieures à l'outil : les cours qu'elles affichent sont les cours réels, qui peuvent différer de ceux du simulateur.</p>
       </details>
 
       <p class="switchg">Vous n'êtes pas ce groupe ? <a id="switchGroup">Changer de groupe</a></p>
@@ -260,6 +281,43 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
   </section>
 
   <!-- ============ CLASSEMENT ============ -->
+  <!-- ============ ANALYSE ============ -->
+  <section class="view" id="view-analyse">
+    <p class="eyebrow">Analyse &amp; gestion</p>
+    <h1 class="page">Analyser mon portefeuille</h1>
+    <p class="lede">Des indicateurs calculés sur vos positions, et les méthodes que les professionnels utilisent pour décider.</p>
+    <div id="anaBody"></div>
+
+    <h2 class="secTitle">Les méthodes d'analyse</h2>
+    <details class="peda"><summary>1. L'analyse fondamentale — que vaut vraiment l'entreprise ?</summary>
+      <p>Elle cherche la <b>valeur réelle</b> d'une société pour la comparer à son cours. On examine son activité, ses résultats, sa dette, ses perspectives. Quelques repères simples :</p>
+      <p><b>Le PER</b> (cours / bénéfice par action) indique combien d'années de bénéfices l'on paie en achetant l'action. Un PER de 15 signifie que l'action vaut 15 fois le bénéfice annuel. Élevé = le marché attend une forte croissance ; faible = défiance… ou bonne affaire.</p>
+      <p><b>Le rendement du dividende</b> (dividende / cours) mesure le revenu versé chaque année. Les entreprises matures (TotalEnergies, Orange) versent davantage que celles en forte croissance.</p>
+      <p><b>La croissance du chiffre d'affaires et la marge</b> disent si l'entreprise se développe et gagne de l'argent. À chercher dans les publications trimestrielles (voir Ressources).</p>
+      <p style="color:var(--muted)"><i>En classe :</i> avant d'acheter, dites en une phrase pourquoi cette entreprise devrait progresser.</p>
+    </details>
+    <details class="peda"><summary>2. L'analyse technique — que dit le graphique ?</summary>
+      <p>Elle ignore l'entreprise et n'étudie que l'évolution du cours, en supposant que les tendances se prolongent. La colonne « Évolution » du marché en donne un aperçu.</p>
+      <p><b>La tendance</b> : une suite de sommets et de creux de plus en plus hauts signale une tendance haussière ; l'inverse, une tendance baissière. On dit qu'il vaut mieux « suivre la tendance » que la contrarier.</p>
+      <p><b>Supports et résistances</b> : un niveau de prix où le cours a plusieurs fois cessé de baisser (support) ou de monter (résistance). Leur franchissement est souvent interprété comme un signal.</p>
+      <p><b>La moyenne mobile</b> lisse les variations pour révéler la tendance de fond ; on compare le cours à sa moyenne des 20 ou 50 dernières séances.</p>
+      <p style="color:var(--muted)"><i>Limite à connaître :</i> l'analyse technique est contestée. Les études académiques montrent qu'elle ne permet pas de battre durablement le marché — un bon sujet de débat en classe.</p>
+    </details>
+    <details class="peda"><summary>3. Construire et gérer un portefeuille</summary>
+      <p><b>Diversifier</b> reste la règle première : répartir sur plusieurs valeurs et plusieurs secteurs réduit le risque sans réduire le rendement attendu. Deux banques ne diversifient pas : elles réagissent aux mêmes nouvelles.</p>
+      <p><b>L'allocation</b> consiste à décider les grandes masses avant de choisir les titres : quelle part en actions, en ETF, en liquidités ? C'est ce choix, plus que la sélection des valeurs, qui explique l'essentiel de la performance.</p>
+      <p><b>Le poids de chaque ligne</b> : si une position représente 40 % du portefeuille, sa chute décide de votre résultat. L'indicateur « concentration » ci-dessus vous l'indique.</p>
+      <p><b>Les frais</b> : chaque aller-retour coûte deux fois la commission. Multiplier les opérations (le « sur-trading ») ronge la performance de façon certaine, alors que le gain, lui, est incertain.</p>
+      <p><b>ETF ou titres vifs ?</b> Un ETF achète tout un indice d'un coup : diversification immédiate, mais performance moyenne du marché. Choisir des actions individuelles peut faire mieux… ou nettement moins bien.</p>
+    </details>
+    <details class="peda"><summary>4. Mesurer le risque et la performance</summary>
+      <p><b>La volatilité</b> mesure l'ampleur des variations d'un cours. Une valeur très volatile peut beaucoup rapporter comme beaucoup coûter : c'est le prix du rendement espéré.</p>
+      <p><b>La performance relative</b> compte plus que la performance absolue : gagner 2 % quand le marché gagne 5 %, c'est en réalité une sous-performance. C'est pourquoi l'analyse ci-dessus vous compare à l'ETF CAC 40.</p>
+      <p><b>La plus-value latente</b> n'est ni gagnée ni perdue tant que vous n'avez pas vendu. Le prix de revient unitaire (PRU) affiché dans le tableau est votre coût moyen d'achat, frais compris.</p>
+      <p><b>Le biais de confirmation</b> guette : on retient les informations qui confirment notre choix. Cherchez volontairement un argument contraire avant d'acheter.</p>
+    </details>
+  </section>
+
   <section class="view" id="view-board">
     <p class="eyebrow">Suivi de performance</p>
     <h1 class="page">Classement des groupes</h1>
@@ -450,8 +508,14 @@ const INSTRUMENTS = [
   ...ETFS.map(([id,name,base,p,syn])    => ({id,name,cat:"etf",   pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn})),
   ...BONDS.map(([id,name,base,p,syn])   => ({id,name,cat:"oblig", pea:true,base,sigma:PROF[p].s,drift:PROF[p].d,syn})),
 ];
-const YSYM = { MT:"MT.AS", STM:"STMPA.PA", STLA:"STLAP.PA", ANX:"PANX.PA" };
-INSTRUMENTS.forEach(i => { i.ysym = YSYM[i.id] || (i.id + ".PA"); });
+// Fiches d'information en français : ABC Bourse pour les actions, Boursorama pour les trackers
+const BOURSO_T = { CAC:"1rTCAC", MSE:"1rTMSE", CEU:"1rTCEU", PE500:"1rTPE500", CW8:"1rTCW8",
+  ANX:"1rTPANX", PAEEM:"1rTPAEEM", PMEH:"1rTPMEH", OBLI:"1rTOBLI" };
+INSTRUMENTS.forEach(i => {
+  i.fiche = (i.cat==="action")
+    ? "https://www.abcbourse.com/cotation/" + i.id + "p"
+    : "https://www.boursorama.com/bourse/trackers/cours/" + (BOURSO_T[i.id] || ("1rT"+i.id)) + "/";
+});
 const BY_ID = {}; INSTRUMENTS.forEach(i => BY_ID[i.id]=i);
 const CAT_LABEL = {action:"Action", etf:"ETF", oblig:"Monétaire"};
 const CAT_BADGE = {action:"b-action", etf:"b-etf", oblig:"b-oblig"};
@@ -605,7 +669,7 @@ function buildMarket(){
   body.innerHTML=list.map(i=>{
     const synBadge=i.syn?`<span class="badge b-syn">synthétique</span>`:"";
     return `<tr>
-      <td class="l"><div class="nm">${i.name}</div><div class="tk">${i.id} · <a class="fiche" href="https://finance.yahoo.com/quote/${i.ysym}" target="_blank" rel="noopener noreferrer">fiche</a></div></td>
+      <td class="l"><div class="nm">${i.name}</div><div class="tk">${i.id} · <a class="fiche" href="${i.fiche}" target="_blank" rel="noopener noreferrer">fiche</a></div></td>
       <td class="l"><span class="badge ${CAT_BADGE[i.cat]}">${CAT_LABEL[i.cat]}</span> <span class="badge b-pea">PEA</span> ${synBadge}</td>
       <td class="px" data-px="${i.id}">—</td>
       <td class="mono" data-var="${i.id}">—</td>
@@ -756,13 +820,86 @@ async function pollCfgPf(){
   }catch(e){}
 }
 
+/* ============================================================
+   ANALYSE DE PORTEFEUILLE
+   ============================================================ */
+function analysePositions(pf){
+  const st={}, out={ fraisTotal:0, nbOrdres:(pf.txs||[]).length };
+  for(const t of (pf.txs||[])){
+    const s = st[t.instr] || (st[t.instr]={qty:0, cout:0});
+    out.fraisTotal += t.fee||0;
+    if(t.type==="BUY"){ s.qty += t.qty; s.cout += t.qty*t.price + (t.fee||0); }
+    else { const pru = s.qty>0 ? s.cout/s.qty : 0; s.cout -= pru*t.qty; s.qty -= t.qty; if(s.qty<=0){ s.qty=0; s.cout=0; } }
+  }
+  out.lignes = Object.keys(pf.holdings||{}).filter(id=>pf.holdings[id]>0).map(id=>{
+    const i=BY_ID[id], q=pf.holdings[id], p=priceAt(i,currentTick()), val=q*p;
+    const s=st[id]||{qty:0,cout:0}; const pru = s.qty>0 ? s.cout/s.qty : null;
+    const pv = pru!=null ? val - pru*q : null;
+    return { id, nom:i.name, cat:i.cat, qty:q, cours:p, valeur:val, pru, pv, pvPct:(pru? (p/pru-1)*100 : null) };
+  }).sort((a,b)=>b.valeur-a.valeur);
+  return out;
+}
+function dec0(x){ return Math.round(x).toString(); }
+function dec2(x){ return x.toFixed(2).replace(".",","); }
+function perfMarche(){ const i=BY_ID.CAC; if(!i) return null;
+  const p=priceAt(i,currentTick()), base=refPrice(i); return base? (p/base-1)*100 : null; }
+function renderAnalyse(){
+  const box=$("#anaBody"); if(!box) return;
+  if(!MY){ box.innerHTML='<div class="card pad"><p style="margin:0;color:var(--muted)">Choisissez d\'abord votre groupe dans l\'onglet « Mon portefeuille ».</p></div>'; return; }
+  const pf=getPf(MY), t=currentTick(), a=analysePositions(pf);
+  const titres=holdingsValue(pf,t), total=pf.cash+titres, perf=(total/CFG.budget-1)*100;
+  const partInv = total>0 ? titres/total*100 : 0;
+  const plusGrosse = a.lignes.length ? a.lignes[0].valeur/(total||1)*100 : 0;
+  const parCat={action:0,etf:0,oblig:0}; a.lignes.forEach(l=>{ parCat[l.cat]=(parCat[l.cat]||0)+l.valeur; });
+  const pm=perfMarche(), ecart=(pm!=null)? perf-pm : null;
+  const barre=(lab,val,tot,couleur)=>{ const pc = tot>0? val/tot*100 : 0;
+    return '<div style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;font-size:12.5px;margin-bottom:3px"><span>'+lab+'</span><span class="mono">'+eur0.format(val)+' · '+pc.toFixed(0)+' %</span></div><div style="height:8px;background:#EDF1F5;border-radius:99px;overflow:hidden"><div style="width:'+pc.toFixed(1)+'%;height:100%;background:'+couleur+'"></div></div></div>'; };
+  const lignesHTML = a.lignes.length ? a.lignes.map(l=>'<tr><td class="l"><span class="tk">'+l.id+'</span> '+l.nom+'</td><td class="mono">'+l.qty+'</td><td class="px">'+(l.pru!=null?pxf.format(l.pru)+" €":"—")+'</td><td class="px">'+pxf.format(l.cours)+' €</td><td class="px">'+eur0.format(l.valeur)+'</td><td class="mono '+(l.pv!=null?cls(l.pv):"")+'">'+(l.pv!=null?(l.pv>=0?"+":"")+eur2.format(l.pv):"—")+'</td><td class="mono '+(l.pvPct!=null?cls(l.pvPct):"")+'">'+(l.pvPct!=null?pct(l.pvPct):"—")+'</td><td class="mono">'+(total>0?(l.valeur/total*100).toFixed(1)+" %":"—")+'</td></tr>').join("")
+    : '<tr><td colspan="8" class="empty">Aucune position — votre portefeuille est entièrement en liquidités.</td></tr>';
+  const obs=[];
+  if(a.lignes.length===0) obs.push("Vous n'avez encore rien investi : votre performance ne peut pas évoluer.");
+  else {
+    if(a.lignes.length<3) obs.push("Votre portefeuille ne compte que "+a.lignes.length+" ligne"+(a.lignes.length>1?"s":"")+" : la diversification est faible.");
+    if(plusGrosse>40) obs.push("Votre plus grosse position pèse "+dec0(plusGrosse)+" % du portefeuille : son évolution décidera de votre résultat.");
+    if(partInv<30) obs.push("Seuls "+dec0(partInv)+" % de votre portefeuille sont investis : le reste ne rapporte rien.");
+    if(partInv>97) obs.push("Vous êtes investi à presque 100 % : aucune marge pour saisir une occasion.");
+    if(a.fraisTotal > CFG.budget*0.01) obs.push("Vos frais cumulés atteignent "+eur2.format(a.fraisTotal)+" : vérifiez que vos allers-retours sont justifiés.");
+    if(ecart!=null && ecart<-1) obs.push("Vous faites moins bien que le marché (ETF CAC 40) de "+dec2(Math.abs(ecart))+" points.");
+    if(ecart!=null && ecart>1) obs.push("Vous faites mieux que le marché de "+dec2(ecart)+" points : sur quel choix précis ?");
+  }
+  box.innerHTML =
+  '<div class="kpis">'
+  +'<div class="kpi"><div class="lab">Part investie</div><div class="val">'+partInv.toFixed(0)+' %</div><div class="delta flat">le reste en liquidités</div></div>'
+  +'<div class="kpi"><div class="lab">Nombre de lignes</div><div class="val">'+a.lignes.length+'</div><div class="delta flat">diversification</div></div>'
+  +'<div class="kpi"><div class="lab">Concentration</div><div class="val">'+plusGrosse.toFixed(0)+' %</div><div class="delta flat">poids de la plus grosse ligne</div></div>'
+  +'<div class="kpi"><div class="lab">Frais payés</div><div class="val">'+eur2.format(a.fraisTotal)+'</div><div class="delta flat">'+a.nbOrdres+' opération'+(a.nbOrdres>1?"s":"")+'</div></div>'
+  +'</div>'
+  +'<div class="grid2" style="margin-bottom:20px">'
+  +'<div class="card pad"><h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 12px;font-size:15px">Répartition de mon portefeuille</h2>'
+  + barre("Actions", parCat.action||0, total, "#0E2A47") + barre("ETF", parCat.etf||0, total, "#157A4D")
+  + barre("Monétaire", parCat.oblig||0, total, "#7a4b8c") + barre("Liquidités", pf.cash, total, "#B8860B")
+  +'</div>'
+  +'<div class="card pad"><h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 12px;font-size:15px">Ma performance face au marché</h2>'
+  +'<div style="display:flex;gap:26px;flex-wrap:wrap;margin-bottom:10px">'
+  +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">Mon portefeuille</div><div class="mono '+cls(perf)+'" style="font-size:24px">'+pct(perf)+'</div></div>'
+  +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">ETF CAC 40</div><div class="mono '+(pm!=null?cls(pm):"")+'" style="font-size:24px">'+(pm!=null?pct(pm):"—")+'</div></div>'
+  +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">Écart</div><div class="mono '+(ecart!=null?cls(ecart):"")+'" style="font-size:24px">'+(ecart!=null?pct(ecart):"—")+'</div></div>'
+  +'</div><p style="font-size:12.5px;color:var(--muted);margin:0">L\'ETF CAC 40 sert de référence : il reflète la moyenne du marché parisien. Battre le marché est plus difficile qu\'il n\'y paraît.</p></div>'
+  +'</div>'
+  +'<div class="card tablecard" style="margin-bottom:20px"><div class="tablehead"><h2>Détail de mes positions</h2><span class="pos">PRU = prix de revient unitaire, frais inclus</span></div>'
+  +'<div class="scroll"><table><thead><tr><th class="l">Valeur</th><th>Qté</th><th>PRU</th><th>Cours<br>actuel</th><th>Valeur</th><th>Plus/moins-<br>value</th><th>En %</th><th>Poids</th></tr></thead><tbody>'+lignesHTML+'</tbody></table></div></div>'
+  +(obs.length?'<div class="note" style="margin-bottom:8px"><b>Pistes de réflexion.</b><ul style="margin:8px 0 0;padding-left:18px">'+obs.map(o=>'<li style="margin:3px 0">'+o+'</li>').join("")+'</ul></div>':"");
+}
+
 function enterDesk(){ updateKpis(); buildMarket(); renderTx(); drawSpark(); updateEnTetes(); updateReadOnly(); }
 function paint(){ renderStatus();
   if(CURVIEW==="trade"){ $("#groupPick").style.display=MY?"none":"block"; $("#groupDesk").style.display=MY?"block":"none"; MY?enterDesk():renderPicker(); }
+  else if(CURVIEW==="analyse") renderAnalyse();
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"){ $("#gate").style.display=PROF_OK?"none":"block"; $("#profPanel").style.display=PROF_OK?"block":"none"; if(PROF_OK) fillProf(); } }
 function liveTick(){ renderStatus(); renderTape();
   if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); updateEnTetes(); updateReadOnly(); }
+  else if(CURVIEW==="analyse") renderAnalyse();
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfGroupDetail(); } }
 
