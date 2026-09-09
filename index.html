@@ -748,11 +748,23 @@ function renderRtState(){ const el=$("#rtState"); if(!el) return;
   if(!REAL.on){ el.textContent="Connexion au relais en cours…"; el.style.color="var(--muted)"; return; }
   const n=Object.values(REAL.quotes).filter(q=>q&&q.price!=null).length;
   const d=new Date(REAL.at), p=x=>String(x).padStart(2,"0");
-  const any=Object.values(REAL.quotes).find(q=>q&&q.state);
-  const ferme = any && any.state && any.state!=="REGULAR";
+  const ferme = !bourseOuverte();
   el.textContent=`Cours réels actifs — ${n} valeurs, mise à jour ${p(d.getHours())}:${p(d.getMinutes())}`
-    + (ferme?"  ⚠ Bourse fermée : les cours ne bougeront pas.":"");
+    + (ferme?"  ⚠ Bourse fermée (9h–17h30, du lundi au vendredi) : les cours ne bougeront pas.":"");
   el.style.color= ferme?"#B8860B":"#157A4D"; }
+/* Euronext Paris : 9h00–17h30, du lundi au vendredi (heure de Paris) */
+function bourseOuverte(d){
+  d = d || new Date();
+  let h, min, jour;
+  try{ const f=new Intl.DateTimeFormat("fr-FR",{timeZone:"Europe/Paris",weekday:"short",hour:"2-digit",minute:"2-digit",hour12:false});
+    const parts={}; f.formatToParts(d).forEach(x=>parts[x.type]=x.value);
+    h=parseInt(parts.hour,10); min=parseInt(parts.minute,10);
+    jour=["dim","lun","mar","mer","jeu","ven","sam"].indexOf((parts.weekday||"").slice(0,3).toLowerCase());
+  }catch(e){ h=d.getHours(); min=d.getMinutes(); jour=d.getDay(); }
+  if(jour===0 || jour===6) return false;                 // week-end
+  const m=h*60+min;
+  return m >= 9*60 && m <= 17*60+30;
+}
 function renderGroupNames(){ const n=parseInt($("#nbGroups").value,10); let html="";
   for(let i=0;i<n;i++){ const g=CFG.groups[i]||{name:"Groupe "+(i+1)};
     html+=`<div class="field"><label>Nom du groupe ${i+1}</label><input data-gname="${i}" value="${g.name.replace(/"/g,'&quot;')}"></div>`; }
