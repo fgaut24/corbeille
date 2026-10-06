@@ -163,7 +163,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v7 · 9 sept.</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v8 · 6 oct.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
@@ -460,16 +460,37 @@ const FB_ON = Object.values(FB_CONFIG).every(v => v && v.indexOf("À_REMPLIR") =
    1. COUCHE DE DONNÉES (Firebase Realtime DB, repli mémoire)
    ===================================================================== */
 let FBDB = null, FBM = null;
+const FB_BASE = "https://www.gstatic.com/firebasejs/10.12.5/";
+let DB_ERR = null;   // message d'erreur lisible si la connexion échoue
 async function dbConnect(){
   if(!FB_ON) return false;
   try{
-    const appMod = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-    const dbMod  = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
+    const appMod  = await import(FB_BASE+"firebase-app.js");
+    const dbMod   = await import(FB_BASE+"firebase-database.js");
+    const authMod = await import(FB_BASE+"firebase-auth.js");
     FBM = dbMod;
     const app = appMod.initializeApp(FB_CONFIG);
+
+    // Connexion anonyme : aucun compte ni mot de passe pour l'utilisateur,
+    // mais la base n'accepte plus que les visiteurs venus de cette page.
+    const auth = authMod.getAuth(app);
+    try{
+      await authMod.signInAnonymously(auth);
+      await new Promise((res,rej)=>{
+        const t=setTimeout(()=>rej(new Error("délai dépassé")), 12000);
+        const stop=authMod.onAuthStateChanged(auth, u=>{ if(u){ clearTimeout(t); stop(); res(); } });
+      });
+    }catch(e){
+      DB_ERR = (e && e.code==="auth/operation-not-allowed")
+        ? "La connexion anonyme n'est pas activée dans Firebase (Authentication → Sign-in method → Anonyme)."
+        : "Connexion refusée : "+((e&&e.message)||"erreur inconnue");
+      console.error("Firebase auth:", e);
+      return false;
+    }
+
     FBDB = dbMod.getDatabase(app);
     return true;
-  }catch(e){ console.error("Firebase:", e); return false; }
+  }catch(e){ DB_ERR="Chargement de Firebase impossible."; console.error("Firebase:", e); return false; }
 }
 function dbListen(path, cb){ if(FBDB) FBM.onValue(FBM.ref(FBDB, path), s => cb(s.val())); }
 async function dbSet(path, val){ if(FBDB){ try{ await FBM.set(FBM.ref(FBDB, path), val); }catch(e){ console.error("set", e); } } }
@@ -1089,7 +1110,10 @@ $("#pinIn").addEventListener("keydown",e=>{ if(e.key==="Enter") $("#pinBtn").cli
    ===================================================================== */
 function showBanner(){ const b=$("#banner"); b.style.display="block";
   if(FBDB){ b.className="banner ok"; b.textContent="Connecté — marché et classement synchronisés entre les postes."; setTimeout(()=>b.style.display="none",3500); }
-  else { b.className="banner local"; b.textContent="Mode local (un seul appareil) — renseignez Firebase pour synchroniser les groupes. Voir le guide d'installation."; } }
+  else { b.className="banner local";
+    b.textContent = DB_ERR
+      ? "Mode local (un seul appareil) — "+DB_ERR
+      : "Mode local (un seul appareil) — renseignez Firebase pour synchroniser les groupes. Voir le guide d'installation."; } }
 
 async function boot(){
   const connected=await dbConnect();
