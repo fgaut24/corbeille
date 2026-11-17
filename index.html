@@ -163,7 +163,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v8 · 6 oct.</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v10 · 17 nov.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
@@ -221,7 +221,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         </div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Valeur</th><th class="l">Type de titre</th><th>Cours actuel</th><th id="thVar">Variation</th><th id="thEvo">Évolution</th><th>Ce que<br>je détiens</th><th>Quantité<br>à négocier</th><th>Passer<br>un ordre</th></tr></thead>
+            <thead><tr><th class="l">Valeur</th><th class="l">Type de titre</th><th>Cours actuel</th><th id="thVar">Variation</th><th title="PER = cours divisé par le bénéfice par action. Il indique combien d'années de bénéfices l'on paie en achetant l'action.">PER</th><th id="thEvo">Évolution</th><th>Ce que<br>je détiens</th><th>Quantité<br>à négocier</th><th>Passer<br>un ordre</th></tr></thead>
             <tbody id="mktBody"></tbody>
           </table>
         </div>
@@ -354,7 +354,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <p class="eyebrow" style="text-align:center">Accès réservé</p>
         <h1 class="page" style="font-size:20px">Panneau enseignant</h1>
         <p class="lede" style="margin:0 auto 16px">Entrez le code pour piloter le marché.</p>
-        <div class="field"><input id="pinIn" type="password" inputmode="numeric" placeholder="Code (par défaut : 1234)" style="text-align:center"></div>
+        <div class="field"><input id="pinIn" type="password" inputmode="numeric" placeholder="Code enseignant" style="text-align:center"></div>
         <button class="btn btn-ink" id="pinBtn" style="width:100%">Déverrouiller</button>
       </div>
     </div>
@@ -386,7 +386,12 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
           <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 14px;font-size:16px">Règles du jeu</h2>
           <div class="field"><label for="budgetIn">Budget initial par groupe (€)</label><input id="budgetIn" type="number" min="0" step="500" value="10000"><div class="hint">Appliqué lors d'une réinitialisation des portefeuilles.</div></div>
           <div class="field"><label for="feeIn">Frais de courtage par opération (%)</label><input id="feeIn" type="number" min="0" max="5" step="0.05" value="0.20"><div class="hint">Mettez 0 pour des transactions sans frais.</div></div>
-          <div class="field"><label for="pinSet">Code enseignant</label><input id="pinSet" type="text" value="1234"></div>
+          <div class="field"><label for="pinSet">Code enseignant</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input id="pinSet" type="password" autocomplete="off" value="1234" style="flex:1">
+              <button type="button" class="btn btn-ghost" id="pinShow">Afficher</button>
+            </div>
+            <div class="hint">Masqué par défaut : le panneau est parfois projeté au tableau.</div></div>
         </div>
       </div>
 
@@ -408,7 +413,27 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       </div>
 
       <div class="card pad" style="margin-top:16px">
-        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Suivi des groupes (en direct)</h2>
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Tous les groupes face au marché</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px" id="cmpNote">—</p>
+        <div class="scroll"><table id="cmpTable">
+          <thead><tr><th class="l">Groupe</th><th>Valeur<br>totale</th><th>Performance<br>du groupe</th><th>Marché<br>(ETF CAC 40)</th><th>Écart<br>au marché</th><th>Lignes</th><th>Opé-<br>rations</th><th>Voir</th></tr></thead>
+          <tbody id="cmpBody"></tbody></table></div>
+        <div class="ctrlrow" style="margin:14px 0 0">
+          <button class="btn btn-ghost" id="fixBench">Figer la référence du marché maintenant</button>
+          <button class="btn btn-ghost" id="expCmp">Exporter ce tableau (CSV)</button>
+        </div>
+      </div>
+
+      <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Les meilleures lignes, tous groupes confondus</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px">Classement des positions détenues par plus-value latente, en pourcentage du prix de revient (frais inclus). Une ligne par position encore ouverte.</p>
+        <div class="scroll"><table>
+          <thead><tr><th>Rang</th><th class="l">Valeur</th><th class="l">Groupe</th><th>Qté</th><th>PRU</th><th>Cours<br>actuel</th><th>Plus/moins-<br>value</th><th>En %</th></tr></thead>
+          <tbody id="topBody"></tbody></table></div>
+      </div>
+
+      <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Détail d'un groupe</h2>
         <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px">Consultez le portefeuille de chaque équipe en temps réel, sans passer par l'export.</p>
         <div class="chips" id="pgChips" style="margin-bottom:14px"></div>
         <div id="pgDetail"></div>
@@ -416,10 +441,23 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
       <div class="card pad" style="margin-top:16px">
         <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 14px;font-size:16px">Groupes</h2>
-        <div class="field" style="max-width:240px"><label for="nbGroups">Nombre de groupes</label>
-          <select id="nbGroups"><option>4</option><option>5</option><option selected>6</option></select></div>
+        <div class="field" style="max-width:240px"><label for="nbGroups">Nombre de groupes d'élèves</label>
+          <select id="nbGroups"><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:0 0 12px;cursor:pointer">
+          <input type="checkbox" id="guestOn"> Ajouter un groupe <b>Invité</b> (démonstration, hors classement)</label>
         <div id="groupNames" class="grid2" style="gap:10px"></div>
       </div>
+
+      <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Bénéfices par action (pour la colonne PER)</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 10px">Le relais de cours ne fournit pas le bénéfice par action : il se saisit ici. Une ligne par société, <b>code du titre</b> puis point-virgule puis <b>BPA en euros</b> — par exemple <code>MC;24,10</code>. Tant qu'un BPA n'est pas renseigné, la colonne PER reste vide pour ce titre plutôt que d'afficher un chiffre non sourcé.</p>
+        <textarea id="epsIn" rows="6" spellcheck="false" style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="MC;24,10&#10;TTE;7,85&#10;SAN;6,40"></textarea>
+        <div class="ctrlrow" style="margin:10px 0 0">
+          <button class="btn btn-gold" id="epsSave">Enregistrer les bénéfices par action</button>
+          <span class="hint" id="epsState" style="font-size:12px;color:var(--muted)">—</span>
+        </div>
+      </div>
+
       <div class="ctrlrow" style="margin-top:16px">
         <button class="btn btn-gold" id="saveCfg">Enregistrer la configuration</button>
         <button class="btn btn-sell" id="resetPf">Réinitialiser tous les portefeuilles</button>
@@ -630,12 +668,15 @@ async function savePf(pf){ PFS[pf.id]=pf; if(FB_ON) await dbSet("pf/"+pf.id, pf)
 function holdingsValue(pf,t){ let v=0; for(const id in pf.holdings){ const q=pf.holdings[id]; if(q) v+=q*priceAt(BY_ID[id],t);} return v; }
 function totalValue(pf,t){ return pf.cash + holdingsValue(pf,t); }
 function nbLines(pf){ let n=0; for(const id in pf.holdings){ if(pf.holdings[id]>0) n++; } return n; }
+/* Le groupe « Invité » sert aux démonstrations : il est suivi par l'enseignant mais
+   n'entre ni dans le classement, ni dans le podium, ni dans le graphique comparatif. */
+function groupesClasses(){ return (CFG.groups||[]).filter(g=>!g.guest); }
 function valueAtTick(pf,tick){ let cash=CFG.budget; const h={};
   for(const x of pf.txs){ if(x.tick>tick) continue;
     if(x.type==="BUY"){ cash-=x.qty*x.price+x.fee; h[x.instr]=(h[x.instr]||0)+x.qty; }
     else { cash+=x.qty*x.price-x.fee; h[x.instr]=(h[x.instr]||0)-x.qty; } }
   let v=cash; for(const id in h){ if(h[id]) v+=h[id]*priceAt(BY_ID[id],tick); } return v; }
-function ranking(t){ return CFG.groups.map(g=>{ const pf=getPf(g.id);
+function ranking(t){ return groupesClasses().map(g=>{ const pf=getPf(g.id);
   return {id:g.id,name:g.name,total:totalValue(pf,t),cash:pf.cash,lines:nbLines(pf),pf}; }).sort((a,b)=>b.total-a.total); }
 
 /* =====================================================================
@@ -684,7 +725,7 @@ function renderTape(){ const t=currentTick();
   $("#tape").innerHTML=make()+make(); }
 function renderPicker(){ const t=currentTick();
   $("#pickerGrid").innerHTML=CFG.groups.map(g=>{ const pf=getPf(g.id),tot=totalValue(pf,t);
-    return `<button class="gbtn" data-pick="${g.id}"><div class="gn">${g.name}</div><div class="gm">${eur0.format(tot)}</div></button>`; }).join(""); }
+    return `<button class="gbtn" data-pick="${g.id}"><div class="gn">${g.name}</div><div class="gm">${eur0.format(tot)}${g.guest?" · hors classement":""}</div></button>`; }).join(""); }
 
 function filtered(){ return INSTRUMENTS.filter(i=>{
   if(FILTER_CAT!=="all" && i.cat!==FILTER_CAT) return false;
@@ -694,7 +735,7 @@ function filtered(){ return INSTRUMENTS.filter(i=>{
 function buildMarket(){
   const body=$("#mktBody"); for(const k in ROWREFS) delete ROWREFS[k];
   const list=filtered();
-  if(!list.length){ body.innerHTML=`<tr><td colspan="8" class="empty">Aucun titre ne correspond.</td></tr>`; return; }
+  if(!list.length){ body.innerHTML=`<tr><td colspan="9" class="empty">Aucun titre ne correspond.</td></tr>`; return; }
   body.innerHTML=list.map(i=>{
     const synBadge=i.syn?`<span class="badge b-syn">synthétique</span>`:"";
     return `<tr>
@@ -702,6 +743,7 @@ function buildMarket(){
       <td class="l"><span class="badge ${CAT_BADGE[i.cat]}">${CAT_LABEL[i.cat]}</span> <span class="badge b-pea">PEA</span> ${synBadge}</td>
       <td class="px" data-px="${i.id}">—</td>
       <td class="mono" data-var="${i.id}">—</td>
+      <td class="mono" data-per="${i.id}">—</td>
       <td class="l"><span class="spark" data-spark="${i.id}"></span></td>
       <td class="pos" data-pos="${i.id}">—</td>
       <td><input class="qty" type="number" min="1" step="1" value="1" data-qty="${i.id}" aria-label="Quantité ${i.name}"></td>
@@ -710,9 +752,23 @@ function buildMarket(){
         <button class="btn btn-sell" data-sell="${i.id}">Vendre</button></div></td>
     </tr>`; }).join("");
   list.forEach(i=>{ ROWREFS[i.id]={ px:body.querySelector(`[data-px="${i.id}"]`), vr:body.querySelector(`[data-var="${i.id}"]`),
+    per:body.querySelector(`[data-per="${i.id}"]`),
     pos:body.querySelector(`[data-pos="${i.id}"]`), buy:body.querySelector(`[data-buy="${i.id}"]`), sell:body.querySelector(`[data-sell="${i.id}"]`),
     spk:body.querySelector(`[data-spark="${i.id}"]`) }; });
   updateMarket(); drawAllSparks();
+}
+/* PER = cours ÷ bénéfice par action. Le BPA n'est pas fourni par le relais de cours :
+   il est saisi par l'enseignant (onglet Enseignant) et stocké dans CFG.eps.
+   Sans BPA saisi, la case reste vide plutôt que d'afficher un chiffre inventé. */
+function epsOf(i){ const e=CFG&&CFG.eps; if(!e) return null;
+  const v=e[i.id]; return (typeof v==="number" && isFinite(v)) ? v : null; }
+function perOf(i,p){
+  if(i.cat!=="action") return {txt:"—", title:"Le PER ne s'applique qu'aux actions : un ETF regroupe des dizaines de sociétés."};
+  const bpa=epsOf(i);
+  if(bpa===null) return {txt:"—", title:"Bénéfice par action non renseigné. L'enseignant peut le saisir dans l'onglet Enseignant."};
+  if(bpa<=0) return {txt:"n.s.", title:"Bénéfice par action négatif ou nul : le PER n'a pas de sens pour une société en perte."};
+  const per=p/bpa;
+  return {txt:per.toFixed(1).replace(".",","), title:`Cours ${pxf.format(p)} € ÷ bénéfice par action ${pxf.format(bpa)} € = ${per.toFixed(1).replace(".",",")} années de bénéfices.`};
 }
 function drawAllSparks(){ for(const id in ROWREFS){ const r=ROWREFS[id], i=BY_ID[id];
   if(r&&r.spk&&i){ try{ r.spk.innerHTML=sparkSVG(i); }catch(e){} } } }
@@ -738,12 +794,14 @@ function updateMarket(){
     // Ré-résout les références manquantes (robustesse : une ligne ne doit jamais figer les autres)
     if(!r || !r.px){ if(!body) return; r=ROWREFS[id]={
       px:body.querySelector(`[data-px="${id}"]`), vr:body.querySelector(`[data-var="${id}"]`),
+      per:body.querySelector(`[data-per="${id}"]`),
       pos:body.querySelector(`[data-pos="${id}"]`), buy:body.querySelector(`[data-buy="${id}"]`), sell:body.querySelector(`[data-sell="${id}"]`),
       spk:body.querySelector(`[data-spark="${id}"]`) }; }
     try{
       const p=priceAt(i,t), v=(p/refPrice(i)-1)*100;
       if(r.px){ r.px.textContent=pxf.format(p)+" €"; }
       if(r.vr){ r.vr.textContent=pct(v); r.vr.className="mono "+cls(v); }
+      if(r.per){ const pe=perOf(i,p); r.per.textContent=pe.txt; r.per.title=pe.title; }
       const q=pf.holdings[id]||0;
       if(r.pos){ r.pos.textContent= q>0 ? `${q} · ${eur0.format(q*p)}` : "—"; }
       if(r.buy){ r.buy.disabled=!live; }
@@ -760,7 +818,8 @@ function updateKpis(){
   $("#kTotal").textContent=eur2.format(total);
   const kd=$("#kTotalD"); kd.className="delta "+cls(plv); kd.innerHTML=`<span class="pill ${cls(plv)}">${pct(plPct)}</span> ${plv>=0?"+":""}${eur2.format(plv)}`;
   $("#kCash").textContent=eur2.format(pf.cash); $("#kInvest").textContent=eur2.format(hv);
-  const rk=ranking(t); $("#kRank").textContent=(rk.findIndex(r=>r.id===MY)+1)+" / "+CFG.groups.length;
+  const rk=ranking(t), pos=rk.findIndex(r=>r.id===MY);
+  $("#kRank").textContent = pos>=0 ? (pos+1)+" / "+rk.length : "hors classement";
 }
 function txTime(x){ if(x&&x.ts){ const d=new Date(x.ts), p=n=>String(n).padStart(2,"0");
   return `${p(d.getHours())}:${p(d.getMinutes())}`; } return "t+"+(x?x.tick:"?"); }
@@ -794,7 +853,7 @@ function drawBigChart(){ const c=$("#bigChart"); if(!c) return; const ctx=c.getC
   c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   const padL=64,padR=14,padT=14,padB=24,tick=currentTick(),N=Math.min(80,Math.max(2,tick)),ticks=[];
   for(let i=0;i<=N;i++) ticks.push(Math.round(tick*i/N));
-  const series=CFG.groups.map((g,gi)=>({name:g.name,color:COLORS[gi%COLORS.length],data:ticks.map(t=>valueAtTick(getPf(g.id),t))}));
+  const series=groupesClasses().map((g,gi)=>({name:g.name,color:COLORS[gi%COLORS.length],data:ticks.map(t=>valueAtTick(getPf(g.id),t))}));
   let mn=Infinity,mx=-Infinity; series.forEach(s=>s.data.forEach(v=>{ if(v<mn)mn=v; if(v>mx)mx=v; }));
   mn=Math.min(mn,CFG.budget); mx=Math.max(mx,CFG.budget); const sp=(mx-mn)||1; mn-=sp*0.08; mx+=sp*0.08;
   const X=i=>padL+(i/(ticks.length-1))*(W-padL-padR), Y=v=>padT+(1-(v-mn)/(mx-mn))*(H-padT-padB);
@@ -870,8 +929,23 @@ function analysePositions(pf){
 }
 function dec0(x){ return Math.round(x).toString(); }
 function dec2(x){ return x.toFixed(2).replace(".",","); }
+/* Référence du marché : niveau de l'ETF CAC 40 FIGÉ AU LANCEMENT DE LA PARTIE.
+   La performance d'un groupe se mesure depuis son budget de départ ; la comparaison
+   doit donc porter sur la même période. Utiliser la clôture de la veille (refPrice)
+   comparerait une variation d'une journée à une performance depuis le début. */
+function benchRef(){ const m=CFG&&CFG.market;
+  if(m && typeof m.benchStart==="number" && m.benchStart>0) return m.benchStart;
+  const i=BY_ID.CAC; return (i && i.base>0) ? i.base : null; }
+function benchLabel(){ const m=CFG&&CFG.market;
+  if(m && m.benchAt){ const d=new Date(m.benchAt), p=n=>String(n).padStart(2,"0");
+    return `référence figée le ${p(d.getDate())}/${p(d.getMonth()+1)} à ${p(d.getHours())} h ${p(d.getMinutes())}`; }
+  return "référence : cours de départ de la partie"; }
+function fixerBench(){ const i=BY_ID.CAC; if(!i||!CFG||!CFG.market) return false;
+  const p=priceAt(i,0); if(!(p>0)) return false;
+  CFG.market.benchStart=p; CFG.market.benchAt=Date.now(); return true; }
 function perfMarche(){ const i=BY_ID.CAC; if(!i) return null;
-  const p=priceAt(i,currentTick()), base=refPrice(i); return base? (p/base-1)*100 : null; }
+  const base=benchRef(); if(!base) return null;
+  return (priceAt(i,currentTick())/base-1)*100; }
 function renderAnalyse(){
   const box=$("#anaBody"); if(!box) return;
   if(!MY){ box.innerHTML='<div class="card pad"><p style="margin:0;color:var(--muted)">Choisissez d\'abord votre groupe dans l\'onglet « Mon portefeuille ».</p></div>'; return; }
@@ -913,7 +987,8 @@ function renderAnalyse(){
   +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">Mon portefeuille</div><div class="mono '+cls(perf)+'" style="font-size:24px">'+pct(perf)+'</div></div>'
   +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">ETF CAC 40</div><div class="mono '+(pm!=null?cls(pm):"")+'" style="font-size:24px">'+(pm!=null?pct(pm):"—")+'</div></div>'
   +'<div><div style="font-size:11.5px;color:var(--muted);text-transform:uppercase">Écart</div><div class="mono '+(ecart!=null?cls(ecart):"")+'" style="font-size:24px">'+(ecart!=null?pct(ecart):"—")+'</div></div>'
-  +'</div><p style="font-size:12.5px;color:var(--muted);margin:0">L\'ETF CAC 40 sert de référence : il reflète la moyenne du marché parisien. Battre le marché est plus difficile qu\'il n\'y paraît.</p></div>'
+  +'</div><p style="font-size:12.5px;color:var(--muted);margin:0 0 6px"><b>Les deux chiffres portent sur la même période</b> : depuis le lancement de la partie ('+benchLabel()+').</p>'
+  +'<p style="font-size:12.5px;color:var(--muted);margin:0">L\'ETF CAC 40 sert de référence : il reflète la moyenne du marché parisien. Battre le marché est plus difficile qu\'il n\'y paraît.</p></div>'
   +'</div>'
   +'<div class="card tablecard" style="margin-bottom:20px"><div class="tablehead"><h2>Détail de mes positions</h2><span class="pos">PRU = prix de revient unitaire, frais inclus</span></div>'
   +'<div class="scroll"><table><thead><tr><th class="l">Valeur</th><th>Qté</th><th>PRU</th><th>Cours<br>actuel</th><th>Valeur</th><th>Plus/moins-<br>value</th><th>En %</th><th>Poids</th></tr></thead><tbody>'+lignesHTML+'</tbody></table></div></div>'
@@ -930,7 +1005,7 @@ function liveTick(){ renderStatus(); renderTape();
   if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); updateEnTetes(); updateReadOnly(); }
   else if(CURVIEW==="analyse") renderAnalyse();
   else if(CURVIEW==="board") renderBoard();
-  else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfGroupDetail(); } }
+  else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfCompare(); renderTopLines(); renderProfGroupDetail(); } }
 
 /* =====================================================================
    9. TRADING
@@ -971,8 +1046,11 @@ async function doTrade(id,side){
    10. ENSEIGNANT
    ===================================================================== */
 function fillProf(){ $("#budgetIn").value=CFG.budget; $("#feeIn").value=CFG.feePct; $("#pinSet").value=CFG.teacherPin;
-  $("#speedSel").value=String(CFG.market.tickMs); $("#nbGroups").value=String(CFG.groups.length); renderGroupNames(); renderMState();
-  renderProfGroups(); fillRt(); }
+  $("#speedSel").value=String(CFG.market.tickMs);
+  const nEleves=groupesClasses().length; $("#nbGroups").value=String(Math.min(8,Math.max(4,nEleves)));
+  const gc=$("#guestOn"); if(gc) gc.checked = (CFG.groups||[]).some(g=>g.guest);
+  renderGroupNames(); renderMState();
+  renderProfGroups(); fillRt(); fillEps(); }
 function fillRt(){ const rt=(CFG.realtime||{mode:"sim",url:""});
   const m=$("#rtMode"), u=$("#rtUrl"); if(m) m.value=rt.mode==="live"?"live":"sim"; if(u) u.value=rt.url||"";
   renderRtState(); }
@@ -1000,8 +1078,8 @@ function bourseOuverte(d){
   const m=h*60+min;
   return m >= 9*60 && m <= 17*60+30;
 }
-function renderGroupNames(){ const n=parseInt($("#nbGroups").value,10); let html="";
-  for(let i=0;i<n;i++){ const g=CFG.groups[i]||{name:"Groupe "+(i+1)};
+function renderGroupNames(){ const n=parseInt($("#nbGroups").value,10); const eleves=groupesClasses(); let html="";
+  for(let i=0;i<n;i++){ const g=eleves[i]||{name:"Groupe "+(i+1)};
     html+=`<div class="field"><label>Nom du groupe ${i+1}</label><input data-gname="${i}" value="${g.name.replace(/"/g,'&quot;')}"></div>`; }
   $("#groupNames").innerHTML=html; }
 function renderMState(){ const st=marketStatus(),t=currentTick();
@@ -1009,7 +1087,11 @@ function renderMState(){ const st=marketStatus(),t=currentTick();
   let txt = st==="live"?`En direct — ${t} variations écoulées`:st==="pause"?`En pause — figé après ${t} variations`:"Non démarré";
   if(st!=="off" && heures>=2){ txt += `  ⚠ Le marché tourne depuis ${heures.toFixed(1)} h : les cours ont beaucoup dérivé. Pensez à « Réinitialiser le marché » avant la prochaine séance, et à mettre en pause en fin de cours.`; }
   const el=$("#mState"); el.textContent=txt; el.style.color = (st!=="off"&&heures>=2)?"#C0392B":"var(--muted)"; }
-async function profStart(){ if(!CFG.market.started){ CFG.market={started:true,running:true,startedAt:Date.now(),accumTicks:0,tickMs:CFG.market.tickMs}; }
+async function profStart(){
+  if(!CFG.market.started){
+    CFG.market={started:true,running:true,startedAt:Date.now(),accumTicks:0,tickMs:CFG.market.tickMs};
+    fixerBench();   // fige le niveau du marché au moment même du lancement
+  }
   else if(!CFG.market.running){ CFG.market.running=true; CFG.market.startedAt=Date.now(); }
   await saveCfg(); renderMState(); renderStatus(); toast("Marché ouvert."); }
 async function profPause(){ if(CFG.market.running){ CFG.market.accumTicks=currentTick(); CFG.market.running=false; CFG.market.startedAt=null;
@@ -1017,9 +1099,66 @@ async function profPause(){ if(CFG.market.running){ CFG.market.accumTicks=curren
 async function profResetMarket(){ if(!confirm("Réinitialiser le marché ? Les cours repartent de leur valeur initiale (les portefeuilles ne sont pas effacés).")) return;
   CFG.market={started:false,running:false,startedAt:null,accumTicks:0,tickMs:CFG.market.tickMs};
   for(const k in PATHS) delete PATHS[k]; await saveCfg(); renderMState(); renderStatus(); toast("Marché réinitialisé."); }
+/* Les portefeuilles repartent du budget : la référence du marché doit repartir du même instant. */
+async function profFixBench(){ if(!fixerBench()){ toast("Cours de l'ETF CAC 40 indisponible.",true); return; }
+  await saveCfg(); renderMState(); renderProfGroups(); if(CURVIEW==="analyse") renderAnalyse();
+  toast("Référence du marché figée sur le cours actuel de l'ETF CAC 40."); }
+
+/* ----- Tableau comparatif : chaque groupe face au marché, sur la MÊME période ----- */
+function ligneCmp(rang, nom, pf, t, pm, gid){
+  const tot=totalValue(pf,t), p=(tot/CFG.budget-1)*100, ec=(pm!=null)?p-pm:null;
+  return `<tr${rang?"":' style="opacity:.75"'}>
+    <td class="l">${rang?`<b>${rang}.</b> `:"— "}${nom}</td>
+    <td class="px">${eur2.format(tot)}</td>
+    <td class="mono ${cls(p)}">${pct(p)}</td>
+    <td class="mono ${pm!=null?cls(pm):""}">${pm!=null?pct(pm):"—"}</td>
+    <td class="mono ${ec!=null?cls(ec):""}"><b>${ec!=null?pct(ec):"—"}</b></td>
+    <td class="mono">${nbLines(pf)}</td>
+    <td class="mono">${(pf.txs||[]).length}</td>
+    <td><button class="btn btn-ghost" data-pg="${gid}">Ouvrir</button></td></tr>`;
+}
+function renderProfCompare(){
+  const body=$("#cmpBody"); if(!body) return;
+  const t=currentTick(), pm=perfMarche(), note=$("#cmpNote");
+  if(note) note.innerHTML = (pm!=null)
+    ? `Marché sur la période : <b class="mono ${cls(pm)}">${pct(pm)}</b> — ${benchLabel()}. <b>Les colonnes « performance du groupe » et « marché » couvrent la même période</b>, celle qui court depuis le lancement de la partie.`
+    : `Référence du marché indisponible : l'ETF CAC 40 n'a pas de cours de départ.`;
+  const rows=ranking(t).map((r,idx)=>ligneCmp(idx+1, r.name, r.pf, t, pm, r.id));
+  (CFG.groups||[]).filter(g=>g.guest).forEach(g=>rows.push(ligneCmp(0, g.name+" (hors classement)", getPf(g.id), t, pm, g.id)));
+  body.innerHTML = rows.join("") || `<tr><td colspan="8" class="empty">Aucun groupe configuré.</td></tr>`;
+}
+function exportCompareCSV(){
+  const t=currentTick(), pm=perfMarche();
+  const rows=[["Rang","Groupe","Valeur totale (EUR)","Performance groupe (%)","Marche ETF CAC 40 (%)","Ecart (points)","Lignes","Operations"]];
+  const add=(rang,nom,pf)=>{ const tot=totalValue(pf,t), p=(tot/CFG.budget-1)*100;
+    rows.push([rang||"hors classement",nom,dec(tot),dec(p),pm!=null?dec(pm):"",pm!=null?dec(p-pm):"",nbLines(pf),(pf.txs||[]).length]); };
+  ranking(t).forEach((r,i)=>add(i+1,r.name,r.pf));
+  (CFG.groups||[]).filter(g=>g.guest).forEach(g=>add(0,g.name,getPf(g.id)));
+  rows.push([]); rows.push(["Reference du marche",benchLabel()]);
+  dlFile("groupes-face-au-marche_"+stamp()+".csv", csvRows(rows), "text/csv");
+}
+/* ----- Classement des meilleures lignes, tous groupes confondus ----- */
+function renderTopLines(){
+  const body=$("#topBody"); if(!body) return;
+  const out=[];
+  (CFG.groups||[]).forEach(g=>{ const a=analysePositions(getPf(g.id));
+    a.lignes.forEach(l=>{ if(l.pvPct!=null) out.push({l, groupe:g.name}); }); });
+  out.sort((x,y)=>y.l.pvPct-x.l.pvPct);
+  const top=out.slice(0,12);
+  body.innerHTML = top.length ? top.map((o,i)=>{ const l=o.l;
+    return `<tr><td class="mono">${i+1}</td>
+      <td class="l"><span class="tk">${l.id}</span> ${l.nom}</td>
+      <td class="l">${o.groupe}</td>
+      <td class="mono">${l.qty}</td>
+      <td class="px">${pxf.format(l.pru)} €</td>
+      <td class="px">${pxf.format(l.cours)} €</td>
+      <td class="mono ${cls(l.pv)}">${(l.pv>=0?"+":"")+eur2.format(l.pv)}</td>
+      <td class="mono ${cls(l.pvPct)}"><b>${pct(l.pvPct)}</b></td></tr>`; }).join("")
+    : `<tr><td colspan="8" class="empty">Aucune position ouverte pour l'instant.</td></tr>`;
+}
 
 /* ----- Suivi des portefeuilles par l'enseignant ----- */
-function renderProfGroups(){ const chips=$("#pgChips"); if(!chips) return;
+function renderProfGroups(){ renderProfCompare(); renderTopLines(); const chips=$("#pgChips"); if(!chips) return;
   if(!PROF_GROUP || !CFG.groups.find(g=>g.id===PROF_GROUP)) PROF_GROUP=CFG.groups[0]&&CFG.groups[0].id;
   chips.innerHTML=CFG.groups.map(g=>`<button class="chip" data-pg="${g.id}" aria-pressed="${g.id===PROF_GROUP}">${g.name}</button>`).join("");
   renderProfGroupDetail(); }
@@ -1058,13 +1197,41 @@ async function profSave(){ CFG.budget=Math.max(0,parseFloat($("#budgetIn").value
   CFG.feePct=Math.max(0,parseFloat($("#feeIn").value)||0); CFG.teacherPin=($("#pinSet").value||"1234").trim();
   CFG.market.tickMs=parseInt($("#speedSel").value,10);
   const n=parseInt($("#nbGroups").value,10), names=[...document.querySelectorAll("[data-gname]")].map(e=>e.value.trim());
-  const groups=[]; for(let i=0;i<n;i++) groups.push({id:"g"+(i+1),name:names[i]||("Groupe "+(i+1))}); CFG.groups=groups;
+  const groups=[]; for(let i=0;i<n;i++) groups.push({id:"g"+(i+1),name:names[i]||("Groupe "+(i+1))});
+  const gc=$("#guestOn"); if(gc&&gc.checked) groups.push({id:"guest",name:"Invité",guest:true});
+  CFG.groups=groups;
+  if(MY && !groups.some(g=>g.id===MY)) MY=null;   // le groupe sélectionné a été supprimé
   const rm=$("#rtMode"), ru=$("#rtUrl");
   if(rm&&ru) CFG.realtime={ mode:rm.value, url:(ru.value||"").trim() };
   await saveCfg(); toast("Configuration enregistrée."); renderMState(); renderRtState();
   if(CFG.realtime && CFG.realtime.mode==="live") fetchReal(true).then(()=>{ renderRtState(); buildMarket(); }); }
+function fillEps(){ const ta=$("#epsIn"); if(!ta) return;
+  const e=(CFG&&CFG.eps)||{};
+  ta.value=Object.keys(e).sort().map(k=>k+";"+String(e[k]).replace(".",",")).join("\n");
+  renderEpsState(); }
+function renderEpsState(){ const el=$("#epsState"); if(!el) return;
+  const n=Object.keys((CFG&&CFG.eps)||{}).length, tot=STOCKS.length;
+  el.textContent = n ? `${n} société${n>1?"s":""} renseignée${n>1?"s":""} sur ${tot}.` : `Aucun bénéfice par action renseigné : la colonne PER est vide.`;
+  el.style.color = n ? "var(--muted)" : "#C0392B"; }
+async function profSaveEps(){
+  const ta=$("#epsIn"); if(!ta) return;
+  const eps={}, inconnus=[], invalides=[];
+  ta.value.split(/\r?\n/).forEach(ligne=>{
+    const l=ligne.trim(); if(!l) return;
+    const m=l.split(/[;\t]/); if(m.length<2){ invalides.push(l); return; }
+    const id=m[0].trim().toUpperCase(), v=parseFloat(m[1].trim().replace(",","."));
+    if(!BY_ID[id] || BY_ID[id].cat!=="action"){ inconnus.push(id); return; }
+    if(!isFinite(v)){ invalides.push(l); return; }
+    eps[id]=v;
+  });
+  CFG.eps=eps; await saveCfg(); renderEpsState(); buildMarket();
+  let msg=`${Object.keys(eps).length} bénéfice(s) par action enregistré(s).`;
+  if(inconnus.length) msg+=` Code(s) ignoré(s) : ${inconnus.join(", ")}.`;
+  if(invalides.length) msg+=` ${invalides.length} ligne(s) mal formée(s).`;
+  toast(msg, inconnus.length||invalides.length ? true : false);
+}
 async function profResetPf(){ if(!confirm("Remettre tous les portefeuilles à zéro (budget de départ, aucune position) ?")) return;
-  CFG.resetToken=(CFG.resetToken||0)+1; await saveCfg();
+  CFG.resetToken=(CFG.resetToken||0)+1; fixerBench(); await saveCfg();
   for(const g of CFG.groups){ const pf=freshPf(g.id); await savePf(pf); } toast("Portefeuilles réinitialisés."); paint(); }
 
 /* =====================================================================
@@ -1083,7 +1250,9 @@ document.addEventListener("click", async (e)=>{
     if(t.dataset.sell) return doTrade(t.dataset.sell,"SELL");
     if(t.dataset.cat){ FILTER_CAT=t.dataset.cat; document.querySelectorAll("[data-cat]").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===FILTER_CAT)); buildMarket(); return; }
   }
-  const pgBtn=e.target.closest("[data-pg]"); if(pgBtn){ PROF_GROUP=pgBtn.dataset.pg; renderProfGroups(); return; }
+  const pgBtn=e.target.closest("[data-pg]"); if(pgBtn){ PROF_GROUP=pgBtn.dataset.pg; renderProfGroups();
+    if(pgBtn.classList.contains("btn")){ const d=$("#pgDetail"); if(d&&d.scrollIntoView) d.scrollIntoView({behavior:"smooth",block:"center"}); }
+    return; }
   if(e.target.id==="refreshBtn") return actualiser();
   if(e.target.id==="switchGroup"){ MY=null; $("#groupDesk").style.display="none"; $("#groupPick").style.display="block"; renderPicker(); }
   if(e.target.id==="pinBtn"){ const v=$("#pinIn").value.trim(); if(v===CFG.teacherPin){ PROF_OK=true; $("#gate").style.display="none"; $("#profPanel").style.display="block"; fillProf(); } else toast("Code incorrect.",true); }
@@ -1097,6 +1266,10 @@ document.addEventListener("click", async (e)=>{
     renderRtState(); toast(ok?"Relais joignable.":"Relais injoignable : "+(REAL.error||""), !ok); })(); }
   if(e.target.id==="rtAnchor"){ (async()=>{ CFG.realtime={mode:$("#rtMode").value,url:($("#rtUrl").value||"").trim()};
     await anchorToReal(); renderRtState(); renderMState(); buildMarket(); })(); }
+  if(e.target.id==="fixBench") profFixBench();
+  if(e.target.id==="expCmp") exportCompareCSV();
+  if(e.target.id==="epsSave") profSaveEps();
+  if(e.target.id==="pinShow"){ const f=$("#pinSet"); if(f){ const h=f.type==="password"; f.type=h?"text":"password"; e.target.textContent=h?"Masquer":"Afficher"; } }
   if(e.target.id==="expBoard"||e.target.id==="expBoard2") exportBoardCSV();
   if(e.target.id==="expPf") exportPortfoliosCSV();
   if(e.target.id==="expJson") exportJSON();
