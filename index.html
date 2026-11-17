@@ -148,6 +148,19 @@ details.peda{margin-top:18px; background:var(--card); border:1px solid var(--lin
 h2.secTitle{font-family:var(--disp); font-weight:800; font-size:16px; color:var(--ink); margin:26px 0 10px}
 details.peda summary{font-family:var(--disp); font-weight:700; color:var(--ink); cursor:pointer; padding:12px 0; font-size:14px}
 details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
+.modal{position:fixed; inset:0; background:rgba(14,42,71,.55); display:flex; align-items:center; justify-content:center; z-index:80; padding:18px}
+.modal-box{background:#fff; border-radius:16px; box-shadow:0 18px 50px rgba(14,42,71,.3); width:100%; max-width:470px; padding:24px; max-height:92vh; overflow:auto}
+.modal-box h2{font-family:var(--disp); font-size:19px; color:var(--ink); margin:0 0 14px}
+.modal-box table{width:100%; border-collapse:collapse; margin-bottom:16px; font-size:13.5px}
+.modal-box table td{padding:6px 0; border-bottom:1px solid var(--line)}
+.modal-box table td:last-child{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; color:var(--ink)}
+.modal-box table tr.tot td{font-weight:700; border-bottom:none; padding-top:10px}
+.modal-box label{display:block; font-size:13.5px; font-weight:600; color:var(--ink); margin-bottom:5px}
+.modal-box label span{font-weight:400; color:var(--muted)}
+.modal-box input[type=text]{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:9px; font-family:var(--body); font-size:13.5px}
+.modal-box input[type=text]:focus{outline:2px solid var(--gold); outline-offset:1px; border-color:var(--gold)}
+.modal-hint{font-size:12px; color:var(--muted); margin:7px 0 0; line-height:1.45}
+.modal-actions{display:flex; gap:10px; justify-content:flex-end; margin-top:18px}
 .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); background:var(--ink); color:#fff; padding:11px 18px; border-radius:10px; font-size:13.5px; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:.25s; z-index:60}
 .toast.show{opacity:1; transform:translateX(-50%) translateY(0)} .toast.err{background:var(--loss)}
 .empty{padding:30px; text-align:center; color:var(--muted); font-size:14px}
@@ -163,7 +176,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v10 · 17 nov.</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v12 · 17 nov.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
@@ -231,8 +244,8 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <div class="tablehead"><h2>Carnet d'ordres</h2><span class="pos" id="txCount">0 opération</span></div>
         <div class="scroll">
           <table>
-            <thead><tr><th class="l">Heure de l'ordre</th><th class="l">Achat ou vente</th><th class="l">Valeur</th><th>Quantité</th><th>Cours payé</th><th>Frais</th><th>Effet sur mes liquidités</th></tr></thead>
-            <tbody id="txBody"><tr><td colspan="7" class="empty">Aucune opération pour l'instant.</td></tr></tbody>
+            <thead><tr><th class="l">Heure de l'ordre</th><th class="l">Achat ou vente</th><th class="l">Valeur</th><th>Quantité</th><th>Cours payé</th><th>Frais</th><th>Effet sur mes liquidités</th><th class="l">Pourquoi cet ordre</th></tr></thead>
+            <tbody id="txBody"><tr><td colspan="8" class="empty">Aucune opération pour l'instant.</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -338,9 +351,10 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
     </div>
     <div class="card tablecard">
       <div class="tablehead"><h2>Tableau complet</h2><button class="btn btn-ghost" id="expBoard">Exporter le classement (CSV)</button></div>
+      <p id="boardNote" style="font-size:12.5px;color:var(--muted);margin:0 14px 10px">—</p>
       <div class="scroll">
         <table>
-          <thead><tr><th class="l">Rang</th><th class="l">Groupe</th><th>Valeur totale</th><th>Performance</th><th>Plus/moins-value</th><th>Liquidités</th><th>Lignes</th></tr></thead>
+          <thead><tr><th class="l">Rang</th><th class="l">Groupe</th><th>Valeur totale</th><th>Performance</th><th>Marché<br>(ETF CAC 40)</th><th>Écart<br>au marché</th><th>Plus/moins-value</th><th>Liquidités</th><th>Lignes</th></tr></thead>
           <tbody id="boardBody"></tbody>
         </table>
       </div>
@@ -468,12 +482,27 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <div class="ctrlrow" style="margin:0">
           <button class="btn btn-ghost" id="expBoard2">Classement (CSV)</button>
           <button class="btn btn-ghost" id="expPf">Portefeuilles détaillés (CSV)</button>
+          <button class="btn btn-gold" id="expOrdres">Carnets d'ordres et justifications (CSV)</button>
           <button class="btn btn-ghost" id="expJson">Sauvegarde complète (JSON)</button>
         </div>
       </div>
       <div class="note" style="margin-top:16px"><b>Déroulé conseillé.</b> Réglez les paramètres puis <b>Enregistrer</b> · distribuez le lien (chaque équipe choisit son groupe) · <b>Démarrer</b> · <b>Pause</b> pour commenter · projetez le <b>Classement</b> en fin de séance · pensez à <b>mettre en pause avant de quitter</b> pour figer les cours jusqu'à la prochaine fois.</div>
     </div>
   </section>
+</div>
+
+<div class="modal" id="orderModal" role="dialog" aria-modal="true" aria-labelledby="omTitle" style="display:none">
+  <div class="modal-box">
+    <h2 id="omTitle">Confirmer l'ordre</h2>
+    <div id="omRecap"></div>
+    <label for="omMotif">Pourquoi cet ordre ? <span>— une phrase suffit</span></label>
+    <input id="omMotif" type="text" maxlength="140" autocomplete="off" placeholder="Ex. : le cours a baissé de 3 % mais les résultats restent solides.">
+    <p class="modal-hint" id="omHint">Cette justification est enregistrée dans votre carnet d'ordres. Elle vous servira à défendre vos décisions devant la classe.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="omCancel">Annuler</button>
+      <button class="btn btn-buy" id="omOk">Confirmer</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -691,7 +720,10 @@ function csvCell(s){ s=String(s); return /[";\n]/.test(s)?'"'+s.replace(/"/g,'""
 function csvRows(r){ return r.map(x=>x.map(csvCell).join(";")).join("\r\n"); }
 function exportBoardCSV(){ const t=currentTick(),rk=ranking(t);
   const rows=[["Rang","Groupe","Valeur totale (EUR)","Performance (%)","Plus/moins-value (EUR)","Liquidites (EUR)","Lignes"]];
-  rk.forEach((r,i)=>{ const p=(r.total/CFG.budget-1)*100; rows.push([i+1,r.name,dec(r.total),dec(p),dec(r.total-CFG.budget),dec(r.cash),r.lines]); });
+  const pmE=perfMarche();
+  rk.forEach((r,i)=>{ const p=(r.total/CFG.budget-1)*100;
+    rows.push([i+1,r.name,dec(r.total),dec(p),pmE!=null?dec(pmE):"",pmE!=null?dec(p-pmE):"",dec(r.total-CFG.budget),dec(r.cash),r.lines]); });
+  rows.push([]); rows.push(["Reference du marche",benchLabel()]);
   dlFile(`classement_${stamp()}.csv`,csvRows(rows),"text/csv"); toast("Classement exporté."); }
 function exportPortfoliosCSV(){ const t=currentTick();
   const rows=[["Groupe","Titre","Code","Classe","Synthetique","Quantite","Cours actuel (EUR)","Valeur ligne (EUR)"]];
@@ -699,6 +731,25 @@ function exportPortfoliosCSV(){ const t=currentTick();
     for(const id in pf.holdings){ const q=pf.holdings[id]; if(!q) continue; const i=BY_ID[id],pr=priceAt(i,t);
       rows.push([g.name,i.name,i.id,CAT_LABEL[i.cat],i.syn?"Oui":"Non",q,dec(pr),dec(q*pr)]); } });
   dlFile(`portefeuilles_${stamp()}.csv`,csvRows(rows),"text/csv"); toast("Portefeuilles exportés."); }
+/* Carnets d'ordres de tous les groupes, avec les justifications : support d'évaluation. */
+function exportOrdresCSV(){
+  const rows=[["Groupe","Date","Heure","Sens","Code","Titre","Quantite","Cours (EUR)","Frais (EUR)","Montant net (EUR)","Justification"]];
+  let n=0, sans=0;
+  (CFG.groups||[]).forEach(g=>{ const pf=getPf(g.id);
+    (pf.txs||[]).forEach(x=>{
+      const d=x.ts?new Date(x.ts):null, p=v=>String(v).padStart(2,"0");
+      const date=d?`${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()}`:"";
+      const heure=d?`${p(d.getHours())}:${p(d.getMinutes())}`:("t+"+x.tick);
+      const net=x.type==="BUY"?-(x.qty*x.price+x.fee):(x.qty*x.price-x.fee);
+      const i=BY_ID[x.instr];
+      n++; if(!x.motif) sans++;
+      rows.push([g.name,date,heure,x.type==="BUY"?"Achat":"Vente",x.instr,i?i.name:"",x.qty,dec(x.price),dec(x.fee),dec(net),x.motif||""]);
+    }); });
+  if(!n){ toast("Aucune opération à exporter.",true); return; }
+  rows.push([]); rows.push(["Total operations",n,"dont sans justification",sans]);
+  dlFile(`carnets-ordres_${stamp()}.csv`,csvRows(rows),"text/csv");
+  toast(`${n} opération(s) exportée(s)${sans?`, dont ${sans} sans justification`:""}.`);
+}
 function exportJSON(){ const data={exporte_le:new Date().toISOString(),tick:currentTick(),configuration:CFG,portefeuilles:PFS};
   dlFile(`sauvegarde_bourse_${stamp()}.json`,JSON.stringify(data,null,2),"application/json"); toast("Sauvegarde téléchargée."); }
 
@@ -825,12 +876,16 @@ function txTime(x){ if(x&&x.ts){ const d=new Date(x.ts), p=n=>String(n).padStart
   return `${p(d.getHours())}:${p(d.getMinutes())}`; } return "t+"+(x?x.tick:"?"); }
 function renderTx(){ const pf=getPf(MY); $("#txCount").textContent=pf.txs.length+(pf.txs.length>1?" opérations":" opération");
   const tb=$("#txBody");
-  if(!pf.txs.length){ tb.innerHTML=`<tr><td colspan="7" class="empty">Aucune opération pour l'instant.</td></tr>`; return; }
+  const sans=pf.txs.filter(x=>!x.motif).length;
+  const cm=$("#txCount"); if(cm && pf.txs.length) cm.textContent += sans? ` · ${sans} sans justification` : " · toutes justifiées";
+  if(!pf.txs.length){ tb.innerHTML=`<tr><td colspan="8" class="empty">Aucune opération pour l'instant.</td></tr>`; return; }
   tb.innerHTML=pf.txs.slice().reverse().map(x=>{ const net=x.type==="BUY"?-(x.qty*x.price+x.fee):(x.qty*x.price-x.fee);
     return `<tr><td class="l mono">${txTime(x)}</td><td class="l"><span class="badge ${x.type==="BUY"?"b-etf":"b-oblig"}">${x.type==="BUY"?"Achat":"Vente"}</span></td>
       <td class="l"><span class="tk">${x.instr}</span> ${BY_ID[x.instr]?BY_ID[x.instr].name:""}</td>
       <td class="mono">${x.qty}</td><td class="px">${pxf.format(x.price)} €</td><td class="mono">${eur2.format(x.fee)}</td>
-      <td class="mono ${net>=0?'up':'dn'}">${net>=0?"+":""}${eur2.format(net)}</td></tr>`; }).join(""); }
+      <td class="mono ${net>=0?'up':'dn'}">${net>=0?"+":""}${eur2.format(net)}</td>
+      <td class="l" style="max-width:260px;font-size:12.5px;${x.motif?"":"color:var(--muted)"}">${x.motif?echap(x.motif):"— non justifié"}</td></tr>`; }).join(""); }
+function echap(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
 function drawSpark(){ const c=$("#spark"); if(!c) return; const ctx=c.getContext("2d"); const dpr=window.devicePixelRatio||1,W=200,H=40;
   c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
@@ -844,17 +899,33 @@ function renderBoard(){ const t=currentTick(),rk=ranking(t);
   const top=rk.slice(0,3),order=[1,0,2];
   $("#podium").innerHTML=order.filter(i=>top[i]).map(i=>{ const r=top[i],p=(r.total/CFG.budget-1)*100;
     return `<div class="step g${i+1}"><div class="rk">${i+1}</div><div class="pn">${r.name}</div><div class="pv">${eur0.format(r.total)}</div><div class="pp ${cls(p)}">${pct(p)}</div></div>`; }).join("");
+  const pm=perfMarche();
   $("#boardBody").innerHTML=rk.map((r,idx)=>{ const p=(r.total/CFG.budget-1)*100,plv=r.total-CFG.budget;
+    const ec=(pm!=null)?p-pm:null;
     return `<tr><td class="l mono">${idx+1}</td><td class="l nm">${r.name}${r.id===MY?' <span class="badge b-pea">vous</span>':''}</td>
       <td class="px">${eur2.format(r.total)}</td><td class="mono ${cls(p)}"><span class="pill ${cls(p)}">${pct(p)}</span></td>
+      <td class="mono ${pm!=null?cls(pm):""}">${pm!=null?pct(pm):"—"}</td>
+      <td class="mono ${ec!=null?cls(ec):""}"><b>${ec!=null?pct(ec):"—"}</b></td>
       <td class="mono ${cls(plv)}">${plv>=0?"+":""}${eur2.format(plv)}</td><td class="mono">${eur0.format(r.cash)}</td><td class="mono">${r.lines}</td></tr>`; }).join("");
+  const bn=$("#boardNote");
+  if(bn) bn.innerHTML = (pm!=null)
+    ? `Référence : un placement de ${eur0.format(CFG.budget)} sur l'<b>ETF CAC 40</b> au lancement de la partie vaudrait aujourd'hui <b class="mono">${eur2.format(CFG.budget*(1+pm/100))}</b>, soit <b class="mono ${cls(pm)}">${pct(pm)}</b>. <b>Battre ce chiffre, c'est battre le marché.</b> Les deux performances couvrent la même période (${benchLabel()}).`
+    : `Référence du marché indisponible.`;
   drawBigChart(); $("#chartTick").textContent="t+"+t; }
 function drawBigChart(){ const c=$("#bigChart"); if(!c) return; const ctx=c.getContext("2d"); const dpr=window.devicePixelRatio||1,W=c.clientWidth||1120,H=340;
   c.width=W*dpr; c.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   const padL=64,padR=14,padT=14,padB=24,tick=currentTick(),N=Math.min(80,Math.max(2,tick)),ticks=[];
   for(let i=0;i<=N;i++) ticks.push(Math.round(tick*i/N));
   const series=groupesClasses().map((g,gi)=>({name:g.name,color:COLORS[gi%COLORS.length],data:ticks.map(t=>valueAtTick(getPf(g.id),t))}));
+  /* Référence : ce que vaudrait le budget de départ placé sur l'ETF CAC 40 au lancement.
+     En cours réels, priceAt renvoie toujours le dernier cours : la trajectoire intrajournalière
+     n'est pas reconstituable, la courbe est alors une simple ligne de niveau, et c'est annoncé. */
+  const cacI=BY_ID.CAC, baseM=benchRef();
+  const marche=(cacI && baseM>0)
+    ? { name:"Marché (ETF CAC 40)", color:"#6B7B8C", plat:realOn(),
+        data:ticks.map(tt=>CFG.budget*priceAt(cacI,tt)/baseM) } : null;
   let mn=Infinity,mx=-Infinity; series.forEach(s=>s.data.forEach(v=>{ if(v<mn)mn=v; if(v>mx)mx=v; }));
+  if(marche) marche.data.forEach(v=>{ if(v<mn)mn=v; if(v>mx)mx=v; });
   mn=Math.min(mn,CFG.budget); mx=Math.max(mx,CFG.budget); const sp=(mx-mn)||1; mn-=sp*0.08; mx+=sp*0.08;
   const X=i=>padL+(i/(ticks.length-1))*(W-padL-padR), Y=v=>padT+(1-(v-mn)/(mx-mn))*(H-padT-padB);
   ctx.strokeStyle="#E4EAF0"; ctx.fillStyle="#9aa7b4"; ctx.font="11px 'IBM Plex Mono',monospace"; ctx.textAlign="right";
@@ -865,7 +936,13 @@ function drawBigChart(){ const c=$("#bigChart"); if(!c) return; const ctx=c.getC
   series.forEach(s=>{ ctx.beginPath(); s.data.forEach((v,i)=>{ const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
     ctx.strokeStyle=s.color; ctx.lineWidth=s.name===myName?3:2; ctx.lineJoin="round"; ctx.stroke();
     const lx=X(s.data.length-1),ly=Y(s.data[s.data.length-1]); ctx.fillStyle=s.color; ctx.beginPath(); ctx.arc(lx,ly,3,0,7); ctx.fill(); });
-  $("#legend").innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join(""); }
+  if(marche){ ctx.beginPath(); marche.data.forEach((v,i)=>{ const x=X(i),y=Y(v); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.strokeStyle=marche.color; ctx.lineWidth=2.5; ctx.setLineDash([7,5]); ctx.lineJoin="round"; ctx.stroke(); ctx.setLineDash([]);
+    const mxp=X(marche.data.length-1),myp=Y(marche.data[marche.data.length-1]);
+    ctx.fillStyle=marche.color; ctx.textAlign="right"; ctx.font="11px 'IBM Plex Mono',monospace";
+    ctx.fillText("marché",mxp-6,myp-7); }
+  $("#legend").innerHTML=series.map(s=>`<span><i style="background:${s.color}"></i>${s.name}</span>`).join("")
+    + (marche?`<span><i style="background:${marche.color}"></i>${marche.name}${marche.plat?" · niveau actuel, la trajectoire du jour n'est pas reconstituée":""}</span>`:""); }
 
 /* Période couverte par la colonne Évolution, et état de consultation */
 function evoPeriode(){ return realOn() ? "aujourd'hui" : "depuis l'ouverture de la partie"; }
@@ -1002,7 +1079,10 @@ function paint(){ renderStatus();
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"){ $("#gate").style.display=PROF_OK?"none":"block"; $("#profPanel").style.display=PROF_OK?"block":"none"; if(PROF_OK) fillProf(); } }
 function liveTick(){ renderStatus(); renderTape();
-  if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); updateEnTetes(); updateReadOnly(); }
+  /* Sans groupe choisi, la grille doit suivre les données qui arrivent de Firebase,
+     sinon elle reste figée sur le budget de départ alors que les portefeuilles ont bougé. */
+  if(CURVIEW==="trade"&&!MY){ renderPicker(); }
+  else if(CURVIEW==="trade"&&MY){ updateKpis(); updateMarket(); drawSpark(); updateEnTetes(); updateReadOnly(); }
   else if(CURVIEW==="analyse") renderAnalyse();
   else if(CURVIEW==="board") renderBoard();
   else if(CURVIEW==="prof"&&PROF_OK){ renderMState(); renderProfCompare(); renderTopLines(); renderProfGroupDetail(); } }
@@ -1023,11 +1103,19 @@ async function doTrade(id,side){
   if(side==="SELL"){ const have=pf.holdings[id]||0;
     if(qty>have){ toast(have?`Vous ne détenez que ${have} titre(s) ${i.id}.`:`Vous ne détenez aucun titre ${i.id}.`,true); return; } }
 
-  // Confirmation : récapitulatif avant exécution
-  const recap = side==="BUY"
-    ? `Confirmer l'ACHAT ?\n\n${qty} × ${i.name} (${i.id})\nCours actuel : ${pxf.format(shown)} €\nMontant : ${eur2.format(sGross)}\nFrais de courtage : ${eur2.format(sFee)}\nTotal à payer : ${eur2.format(sGross+sFee)}\n\nArgent disponible après : ${eur2.format(pf.cash-sGross-sFee)}\n\nLe cours peut varier légèrement d'ici l'exécution.`
-    : `Confirmer la VENTE ?\n\n${qty} × ${i.name} (${i.id})\nCours actuel : ${pxf.format(shown)} €\nMontant : ${eur2.format(sGross)}\nFrais de courtage : ${eur2.format(sFee)}\nTotal reçu : ${eur2.format(sGross-sFee)}\n\nArgent disponible après : ${eur2.format(pf.cash+sGross-sFee)}\n\nLe cours peut varier légèrement d'ici l'exécution.`;
-  if(!window.confirm(recap)){ toast("Ordre annulé."); return; }
+  // Confirmation : récapitulatif + justification de la décision
+  const achat = side==="BUY";
+  const recap = `<table>
+    <tr><td>${qty} × ${i.name}</td><td><span class="tk">${i.id}</span></td></tr>
+    <tr><td>Cours actuel</td><td>${pxf.format(shown)} €</td></tr>
+    <tr><td>Montant</td><td>${eur2.format(sGross)}</td></tr>
+    <tr><td>Frais de courtage</td><td>${eur2.format(sFee)}</td></tr>
+    <tr class="tot"><td>${achat?"Total à payer":"Total reçu"}</td><td>${eur2.format(achat?sGross+sFee:sGross-sFee)}</td></tr>
+    <tr><td>Argent disponible après</td><td>${eur2.format(achat?pf.cash-sGross-sFee:pf.cash+sGross-sFee)}</td></tr>
+  </table><p class="modal-hint" style="margin:-8px 0 16px">Le cours peut varier légèrement d'ici l'exécution.</p>`;
+  const rep = await askOrder(achat?"Confirmer l'achat":"Confirmer la vente", recap, achat?"btn-buy":"btn-sell");
+  if(!rep.ok){ toast("Ordre annulé."); return; }
+  const motif = rep.motif;
 
   // Exécution au cours en vigueur à cet instant
   const t=currentTick(), price=priceAt(i,t);
@@ -1036,10 +1124,34 @@ async function doTrade(id,side){
     pf.cash-=gross+fee; pf.holdings[id]=(pf.holdings[id]||0)+qty; }
   else { const have=pf.holdings[id]||0; if(qty>have){ toast(`Vous ne détenez que ${have} titre(s) ${i.id}.`,true); return; }
     pf.cash+=gross-fee; pf.holdings[id]=have-qty; if(pf.holdings[id]<=0) delete pf.holdings[id]; }
-  pf.txs.push({tick:t,type:side,instr:id,qty,price,fee,ts:Date.now()});
+  const tx={tick:t,type:side,instr:id,qty,price,fee,ts:Date.now()};
+  if(motif) tx.motif=motif;   // champ omis s'il est vide : Firebase ne conserve pas les valeurs vides
+  pf.txs.push(tx);
   await savePf(pf);
   toast(`${side==="BUY"?"Achat effectué":"Vente effectuée"} : ${qty} × ${i.id} à ${pxf.format(price)} €`);
   updateKpis(); updateMarket(); renderTx(); drawSpark();
+}
+
+/* Fenêtre de confirmation : récapitulatif + justification. Remplace window.confirm,
+   qui ne permet pas de saisir de texte. Résout avec {ok, motif}. */
+function askOrder(titre, recapHTML, classeBouton){
+  return new Promise(res=>{
+    const m=$("#orderModal"), ti=$("#omTitle"), rc=$("#omRecap"),
+          mo=$("#omMotif"), ok=$("#omOk"), ca=$("#omCancel");
+    if(!m){ res({ok:window.confirm(titre+" ?"), motif:""}); return; }
+    ti.textContent=titre; rc.innerHTML=recapHTML; mo.value="";
+    ok.className="btn "+(classeBouton||"btn-buy"); ok.textContent=titre;
+    m.style.display="flex"; setTimeout(()=>{ try{ mo.focus(); }catch(e){} },30);
+    const clavier=(e)=>{
+      if(e.key==="Escape"){ e.preventDefault(); fin({ok:false,motif:""}); }
+      else if(e.key==="Enter"){ e.preventDefault(); fin({ok:true,motif:mo.value.trim().slice(0,140)}); } };
+    function fin(v){ m.style.display="none"; ok.onclick=null; ca.onclick=null; m.onclick=null;
+      document.removeEventListener("keydown",clavier,true); res(v); }
+    ok.onclick=()=>fin({ok:true, motif:mo.value.trim().slice(0,140)});
+    ca.onclick=()=>fin({ok:false, motif:""});
+    m.onclick=(e)=>{ if(e.target===m) fin({ok:false, motif:""}); };
+    document.addEventListener("keydown",clavier,true);
+  });
 }
 
 /* =====================================================================
@@ -1176,8 +1288,26 @@ function renderProfGroupDetail(){ const box=$("#pgDetail"); if(!box||!PROF_GROUP
     </div>
     <canvas id="pgChart" width="900" height="170" style="width:100%;height:auto;margin:2px 0 14px"></canvas>
     ${rows.length?`<div class="scroll"><table><thead><tr><th class="l">Titre</th><th>Qté</th><th>Cours</th><th>Valeur</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`
-      :`<p style="color:var(--muted);font-size:13px;margin:0">Aucune position — entièrement en liquidités.</p>`}`;
+      :`<p style="color:var(--muted);font-size:13px;margin:0">Aucune position — entièrement en liquidités.</p>`}
+    ${journalOrdres(pf)}`;
   drawGroupChart(PROF_GROUP); }
+/* Journal des ordres du groupe, avec la justification saisie par les élèves :
+   c'est la trace écrite exploitable pour l'évaluation. */
+function journalOrdres(pf){
+  const txs=(pf.txs||[]).slice().reverse();
+  if(!txs.length) return "";
+  const sans=txs.filter(x=>!x.motif).length;
+  const lignes=txs.map(x=>`<tr>
+    <td class="l mono">${txTime(x)}</td>
+    <td class="l"><span class="badge ${x.type==="BUY"?"b-etf":"b-oblig"}">${x.type==="BUY"?"Achat":"Vente"}</span></td>
+    <td class="l"><span class="tk">${x.instr}</span></td>
+    <td class="mono">${x.qty}</td>
+    <td class="px">${pxf.format(x.price)} €</td>
+    <td class="l" style="font-size:12.5px;${x.motif?"":"color:var(--muted)"}">${x.motif?echap(x.motif):"— non justifié"}</td></tr>`).join("");
+  return `<h3 style="font-family:var(--disp);font-size:14px;color:var(--ink);margin:18px 0 4px">Journal des ordres et justifications</h3>
+    <p style="font-size:12px;color:var(--muted);margin:0 0 8px">${txs.length} opération${txs.length>1?"s":""}${sans?` · <b>${sans} sans justification</b>`:" · toutes justifiées"}.</p>
+    <div class="scroll"><table><thead><tr><th class="l">Heure</th><th class="l">Sens</th><th class="l">Titre</th><th>Qté</th><th>Cours</th><th class="l">Pourquoi cet ordre</th></tr></thead><tbody>${lignes}</tbody></table></div>`;
+}
 function drawGroupChart(gid){
   const c=$("#pgChart"); if(!c) return; const ctx=c.getContext("2d"); if(!ctx) return;
   const dpr=window.devicePixelRatio||1, W=c.clientWidth||900, H=170;
@@ -1272,6 +1402,7 @@ document.addEventListener("click", async (e)=>{
   if(e.target.id==="pinShow"){ const f=$("#pinSet"); if(f){ const h=f.type==="password"; f.type=h?"text":"password"; e.target.textContent=h?"Masquer":"Afficher"; } }
   if(e.target.id==="expBoard"||e.target.id==="expBoard2") exportBoardCSV();
   if(e.target.id==="expPf") exportPortfoliosCSV();
+  if(e.target.id==="expOrdres") exportOrdresCSV();
   if(e.target.id==="expJson") exportJSON();
 });
 document.addEventListener("change",(e)=>{ if(e.target.id==="nbGroups") renderGroupNames(); });
