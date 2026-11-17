@@ -176,7 +176,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v12 · 17 nov.</span></div>
+    <div class="brand"><span class="mark">La <span class="b">Corbeille</span></span><span class="sub">Cordée · Paris-Dauphine</span><span class="ver" title="Version du fichier en ligne">v13 · 17 nov.</span></div>
     <div class="status"><span id="dot" class="dot off"></span><span id="statusTxt">Chargement…</span></div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" aria-selected="true" data-view="trade">Mon portefeuille</button>
@@ -198,6 +198,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       <p class="eyebrow">Étape 1</p>
       <h1 class="page">Choisissez votre groupe</h1>
       <p class="lede">Chaque équipe pilote son portefeuille depuis son poste. Sélectionnez le vôtre pour commencer.</p>
+      <div class="note" id="pickMkt" style="margin:0 0 16px;display:none">—</div>
       <div class="picker" id="pickerGrid"></div>
     </div>
 
@@ -213,6 +214,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
         <div class="kpi"><div class="lab">Argent disponible</div><div class="val" id="kCash">—</div><div class="delta flat">pour acheter</div></div>
         <div class="kpi"><div class="lab">Valeur des titres détenus</div><div class="val" id="kInvest">—</div><div class="delta flat">au cours actuel</div></div>
         <div class="kpi"><div class="lab">Rang de mon groupe</div><div class="val" id="kRank">—</div><div class="delta flat">parmi les groupes</div></div>
+        <div class="kpi"><div class="lab">Le marché sur la même période</div><div class="val" id="kMkt">—</div><div class="delta" id="kMktD">—</div></div>
       </div>
 
       <div class="card tablecard" style="margin-bottom:20px">
@@ -463,6 +465,18 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
       </div>
 
       <div class="card pad" style="margin-top:16px">
+        <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Codes d'accès des groupes</h2>
+        <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 12px">Sans code, n'importe quel poste peut passer des ordres au nom de n'importe quelle équipe. Avec un code, chaque groupe le saisit une seule fois : le poste s'en souvient ensuite. Le groupe Invité reste libre.</p>
+        <div id="codesBox" style="margin-bottom:12px">—</div>
+        <div class="ctrlrow" style="margin:0">
+          <button class="btn btn-gold" id="codesGen">Générer les codes</button>
+          <button class="btn btn-ghost" id="codesPrint">Fiche à découper (à imprimer)</button>
+          <button class="btn btn-ghost" id="codesOff">Désactiver les codes</button>
+          <button class="btn btn-ghost" id="codesForget">Oublier les groupes mémorisés sur ce poste</button>
+        </div>
+      </div>
+
+      <div class="card pad" style="margin-top:16px">
         <h2 style="font-family:var(--disp);color:var(--ink);margin:0 0 6px;font-size:16px">Bénéfices par action (pour la colonne PER)</h2>
         <p class="hint" style="font-size:12px;color:var(--muted);margin:0 0 10px">Le relais de cours ne fournit pas le bénéfice par action : il se saisit ici. Une ligne par société, <b>code du titre</b> puis point-virgule puis <b>BPA en euros</b> — par exemple <code>MC;24,10</code>. Tant qu'un BPA n'est pas renseigné, la colonne PER reste vide pour ce titre plutôt que d'afficher un chiffre non sourcé.</p>
         <textarea id="epsIn" rows="6" spellcheck="false" style="width:100%;font-family:'IBM Plex Mono',monospace;font-size:13px;padding:10px;border:1px solid var(--line);border-radius:8px" placeholder="MC;24,10&#10;TTE;7,85&#10;SAN;6,40"></textarea>
@@ -495,7 +509,7 @@ details.peda p{font-size:13.5px; color:var(--slate); margin:0 0 12px}
   <div class="modal-box">
     <h2 id="omTitle">Confirmer l'ordre</h2>
     <div id="omRecap"></div>
-    <label for="omMotif">Pourquoi cet ordre ? <span>— une phrase suffit</span></label>
+    <label for="omMotif" id="omLabel">Pourquoi cet ordre ? <span>— une phrase suffit</span></label>
     <input id="omMotif" type="text" maxlength="140" autocomplete="off" placeholder="Ex. : le cours a baissé de 3 % mais les résultats restent solides.">
     <p class="modal-hint" id="omHint">Cette justification est enregistrée dans votre carnet d'ordres. Elle vous servira à défendre vos décisions devant la classe.</p>
     <div class="modal-actions">
@@ -700,6 +714,43 @@ function nbLines(pf){ let n=0; for(const id in pf.holdings){ if(pf.holdings[id]>
 /* Le groupe « Invité » sert aux démonstrations : il est suivi par l'enseignant mais
    n'entre ni dans le classement, ni dans le podium, ni dans le graphique comparatif. */
 function groupesClasses(){ return (CFG.groups||[]).filter(g=>!g.guest); }
+
+/* ---- Codes d'accès par groupe ----
+   Chaque équipe saisit son code une fois ; le poste s'en souvient (stockage local).
+   Si l'enseignant régénère les codes, les mémorisations deviennent caduques.
+   Le groupe Invité reste libre : il sert aux démonstrations. */
+const LS_CLE="corbeille.acces";
+function codesActifs(){ const c=CFG&&CFG.codes; return !!(c && Object.keys(c).length); }
+function codeDe(gid){ const c=(CFG&&CFG.codes)||{}; return c[gid]||null; }
+function accesMemo(){ try{ return JSON.parse(localStorage.getItem(LS_CLE)||"{}")||{}; }catch(e){ return {}; } }
+function memoriserAcces(gid,code){ try{ const a=accesMemo(); a[gid]=code; localStorage.setItem(LS_CLE,JSON.stringify(a)); }catch(e){} }
+function oublierAcces(gid){ try{ const a=accesMemo(); delete a[gid]; localStorage.setItem(LS_CLE,JSON.stringify(a)); }catch(e){} }
+function groupeAutorise(gid){
+  const g=(CFG.groups||[]).find(x=>x.id===gid);
+  if(!g || g.guest) return true;              // l'Invité est libre
+  if(!codesActifs()) return true;             // aucun code défini : comportement d'origine
+  const attendu=codeDe(gid); if(!attendu) return true;
+  return accesMemo()[gid]===attendu;
+}
+async function demanderCode(gid){
+  const g=(CFG.groups||[]).find(x=>x.id===gid)||{name:"ce groupe"};
+  const attendu=codeDe(gid);
+  const rep=await askOrder(`Accéder à ${g.name}`,
+    `<p class="modal-hint" style="margin:0 0 16px">Saisissez le code à quatre chiffres remis par votre professeur. Ce poste s'en souviendra pour les prochaines séances.</p>`,
+    "btn-ink",
+    { label:`Code du groupe <span>— quatre chiffres</span>`, placeholder:"····", okTexte:"Entrer",
+      numerique:true, max:4, hint:"Ce code protège votre portefeuille : lui seul permet de passer des ordres en votre nom." });
+  if(!rep.ok) return false;
+  if(rep.motif===attendu){ memoriserAcces(gid,rep.motif); return true; }
+  toast("Code incorrect pour "+g.name+".",true); return false;
+}
+function genererCodes(){
+  const c={}; const pris={};
+  (CFG.groups||[]).filter(g=>!g.guest).forEach(g=>{
+    let n; do{ n=String(Math.floor(1000+Math.random()*9000)); }while(pris[n]);
+    pris[n]=1; c[g.id]=n; });
+  return c;
+}
 function valueAtTick(pf,tick){ let cash=CFG.budget; const h={};
   for(const x of pf.txs){ if(x.tick>tick) continue;
     if(x.type==="BUY"){ cash-=x.qty*x.price+x.fee; h[x.instr]=(h[x.instr]||0)+x.qty; }
@@ -776,7 +827,13 @@ function renderTape(){ const t=currentTick();
   $("#tape").innerHTML=make()+make(); }
 function renderPicker(){ const t=currentTick();
   $("#pickerGrid").innerHTML=CFG.groups.map(g=>{ const pf=getPf(g.id),tot=totalValue(pf,t);
-    return `<button class="gbtn" data-pick="${g.id}"><div class="gn">${g.name}</div><div class="gm">${eur0.format(tot)}${g.guest?" · hors classement":""}</div></button>`; }).join(""); }
+    const p=(tot/CFG.budget-1)*100, pm0=perfMarche(), ec=(pm0!=null&&!g.guest)?p-pm0:null;
+    const verrou = (!g.guest && codesActifs() && !groupeAutorise(g.id)) ? ' 🔒' : '';
+    return `<button class="gbtn" data-pick="${g.id}"><div class="gn">${g.name}${verrou}</div><div class="gm">${eur0.format(tot)}${g.guest?" · hors classement":` · <span class="${cls(p)}">${pct(p)}</span>${ec!=null?` · marché ${pct(pm0)}`:""}`}</div></button>`; }).join("");
+  const pk=$("#pickMkt"), pm=perfMarche();
+  if(pk){ if(pm!=null){ pk.style.display="block";
+      pk.innerHTML=`<b>Le marché depuis l'ouverture de la partie : <span class="mono ${cls(pm)}">${pct(pm)}</span></b> — un placement de ${eur0.format(CFG.budget)} sur l'ETF CAC 40 au lancement vaudrait ${eur2.format(CFG.budget*(1+pm/100))} aujourd'hui. C'est le repère à battre.`; }
+    else pk.style.display="none"; } }
 
 function filtered(){ return INSTRUMENTS.filter(i=>{
   if(FILTER_CAT!=="all" && i.cat!==FILTER_CAT) return false;
@@ -871,6 +928,13 @@ function updateKpis(){
   $("#kCash").textContent=eur2.format(pf.cash); $("#kInvest").textContent=eur2.format(hv);
   const rk=ranking(t), pos=rk.findIndex(r=>r.id===MY);
   $("#kRank").textContent = pos>=0 ? (pos+1)+" / "+rk.length : "hors classement";
+  // Le marché, toujours affiché à côté de la performance du groupe, sur la même période
+  const pmk=perfMarche(), km=$("#kMkt"), kmd=$("#kMktD");
+  if(km){ km.textContent = pmk!=null ? pct(pmk) : "—"; km.className="val "+(pmk!=null?cls(pmk):""); }
+  if(kmd){ if(pmk!=null){ const ec=plPct-pmk;
+      kmd.textContent=(ec>=0?"vous faites mieux de ":"vous faites moins bien de ")+Math.abs(ec).toFixed(2).replace(".",",")+" points";
+      kmd.className="delta "+cls(ec); }
+    else { kmd.textContent="ETF CAC 40"; kmd.className="delta flat"; } }
 }
 function txTime(x){ if(x&&x.ts){ const d=new Date(x.ts), p=n=>String(n).padStart(2,"0");
   return `${p(d.getHours())}:${p(d.getMinutes())}`; } return "t+"+(x?x.tick:"?"); }
@@ -897,8 +961,11 @@ function drawSpark(){ const c=$("#spark"); if(!c) return; const ctx=c.getContext
 const COLORS=["#0E2A47","#B8860B","#157A4D","#C0392B","#2E6FB7","#7a4b8c","#0f8a8a","#c06a2c"];
 function renderBoard(){ const t=currentTick(),rk=ranking(t);
   const top=rk.slice(0,3),order=[1,0,2];
+  const pmP=perfMarche();
   $("#podium").innerHTML=order.filter(i=>top[i]).map(i=>{ const r=top[i],p=(r.total/CFG.budget-1)*100;
-    return `<div class="step g${i+1}"><div class="rk">${i+1}</div><div class="pn">${r.name}</div><div class="pv">${eur0.format(r.total)}</div><div class="pp ${cls(p)}">${pct(p)}</div></div>`; }).join("");
+    const ec=(pmP!=null)?p-pmP:null;
+    return `<div class="step g${i+1}"><div class="rk">${i+1}</div><div class="pn">${r.name}</div><div class="pv">${eur0.format(r.total)}</div><div class="pp ${cls(p)}">${pct(p)}</div>
+      <div style="font-size:11.5px;margin-top:3px;color:var(--muted)">marché ${pmP!=null?pct(pmP):"—"}${ec!=null?` · <b class="${cls(ec)}">${pct(ec)}</b>`:""}</div></div>`; }).join("");
   const pm=perfMarche();
   $("#boardBody").innerHTML=rk.map((r,idx)=>{ const p=(r.total/CFG.budget-1)*100,plv=r.total-CFG.budget;
     const ec=(pm!=null)?p-pm:null;
@@ -1132,15 +1199,25 @@ async function doTrade(id,side){
   updateKpis(); updateMarket(); renderTx(); drawSpark();
 }
 
-/* Fenêtre de confirmation : récapitulatif + justification. Remplace window.confirm,
-   qui ne permet pas de saisir de texte. Résout avec {ok, motif}. */
-function askOrder(titre, recapHTML, classeBouton){
+/* Fenêtre modale générique : un récapitulatif et un champ de saisie.
+   Remplace window.confirm, qui ne permet pas de saisir de texte.
+   Résout avec {ok, motif} — motif étant la valeur du champ. */
+function askOrder(titre, recapHTML, classeBouton, opts){
+  opts = opts||{};
   return new Promise(res=>{
     const m=$("#orderModal"), ti=$("#omTitle"), rc=$("#omRecap"),
-          mo=$("#omMotif"), ok=$("#omOk"), ca=$("#omCancel");
+          mo=$("#omMotif"), ok=$("#omOk"), ca=$("#omCancel"),
+          lb=$("#omLabel"), hi=$("#omHint");
     if(!m){ res({ok:window.confirm(titre+" ?"), motif:""}); return; }
     ti.textContent=titre; rc.innerHTML=recapHTML; mo.value="";
-    ok.className="btn "+(classeBouton||"btn-buy"); ok.textContent=titre;
+    if(lb) lb.innerHTML = opts.label || `Pourquoi cet ordre ? <span>— une phrase suffit</span>`;
+    if(hi) hi.textContent = opts.hint || "Cette justification est enregistrée dans votre carnet d'ordres. Elle vous servira à défendre vos décisions devant la classe.";
+    mo.placeholder = opts.placeholder || "Ex. : le cours a baissé de 3 % mais les résultats restent solides.";
+    mo.maxLength = opts.max || 140;
+    mo.setAttribute("inputmode", opts.numerique ? "numeric" : "text");
+    mo.style.textAlign = opts.numerique ? "center" : "left";
+    mo.style.letterSpacing = opts.numerique ? "6px" : "normal";
+    ok.className="btn "+(classeBouton||"btn-buy"); ok.textContent=opts.okTexte||titre;
     m.style.display="flex"; setTimeout(()=>{ try{ mo.focus(); }catch(e){} },30);
     const clavier=(e)=>{
       if(e.key==="Escape"){ e.preventDefault(); fin({ok:false,motif:""}); }
@@ -1162,7 +1239,7 @@ function fillProf(){ $("#budgetIn").value=CFG.budget; $("#feeIn").value=CFG.feeP
   const nEleves=groupesClasses().length; $("#nbGroups").value=String(Math.min(8,Math.max(4,nEleves)));
   const gc=$("#guestOn"); if(gc) gc.checked = (CFG.groups||[]).some(g=>g.guest);
   renderGroupNames(); renderMState();
-  renderProfGroups(); fillRt(); fillEps(); }
+  renderProfGroups(); fillRt(); fillEps(); renderCodes(); }
 function fillRt(){ const rt=(CFG.realtime||{mode:"sim",url:""});
   const m=$("#rtMode"), u=$("#rtUrl"); if(m) m.value=rt.mode==="live"?"live":"sim"; if(u) u.value=rt.url||"";
   renderRtState(); }
@@ -1277,6 +1354,7 @@ function renderProfGroups(){ renderProfCompare(); renderTopLines(); const chips=
 function renderProfGroupDetail(){ const box=$("#pgDetail"); if(!box||!PROF_GROUP) return;
   const g=CFG.groups.find(x=>x.id===PROF_GROUP); if(!g){ box.innerHTML=""; return; }
   const pf=getPf(PROF_GROUP), t=currentTick(), total=totalValue(pf,t), plv=total-CFG.budget, plPct=(total/CFG.budget-1)*100;
+  const pmD=perfMarche(), ecD=(pmD!=null)?plPct-pmD:null;
   const rows=Object.keys(pf.holdings).filter(id=>pf.holdings[id]>0).map(id=>{ const i=BY_ID[id],q=pf.holdings[id],p=priceAt(i,t),val=q*p;
     return `<tr><td class="l"><span class="tk">${id}</span> ${i.name}</td><td class="mono">${q}</td><td class="px">${pxf.format(p)} €</td><td class="px">${eur0.format(val)}</td></tr>`; });
   box.innerHTML=`
@@ -1285,6 +1363,8 @@ function renderProfGroupDetail(){ const box=$("#pgDetail"); if(!box||!PROF_GROUP
       <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Performance</div><div class="mono ${cls(plv)}" style="font-size:20px">${pct(plPct)}</div></div>
       <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Liquidités</div><div class="mono" style="font-size:20px;color:var(--ink)">${eur0.format(pf.cash)}</div></div>
       <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Opérations</div><div class="mono" style="font-size:20px;color:var(--ink)">${pf.txs.length}</div></div>
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Marché</div><div class="mono ${pmD!=null?cls(pmD):""}" style="font-size:20px">${pmD!=null?pct(pmD):"—"}</div></div>
+      <div><div class="lab" style="font-size:11px;color:var(--muted);text-transform:uppercase">Écart au marché</div><div class="mono ${ecD!=null?cls(ecD):""}" style="font-size:20px"><b>${ecD!=null?pct(ecD):"—"}</b></div></div>
     </div>
     <canvas id="pgChart" width="900" height="170" style="width:100%;height:auto;margin:2px 0 14px"></canvas>
     ${rows.length?`<div class="scroll"><table><thead><tr><th class="l">Titre</th><th>Qté</th><th>Cours</th><th>Valeur</th></tr></thead><tbody>${rows.join("")}</tbody></table></div>`
@@ -1335,6 +1415,41 @@ async function profSave(){ CFG.budget=Math.max(0,parseFloat($("#budgetIn").value
   if(rm&&ru) CFG.realtime={ mode:rm.value, url:(ru.value||"").trim() };
   await saveCfg(); toast("Configuration enregistrée."); renderMState(); renderRtState();
   if(CFG.realtime && CFG.realtime.mode==="live") fetchReal(true).then(()=>{ renderRtState(); buildMarket(); }); }
+function renderCodes(){ const box=$("#codesBox"); if(!box) return;
+  if(!codesActifs()){ box.innerHTML=`<p style="font-size:13px;color:#C0392B;margin:0"><b>Aucun code défini.</b> Tout poste peut agir sur n'importe quel portefeuille.</p>`; return; }
+  const memo=accesMemo();
+  box.innerHTML=`<div class="grid2" style="gap:8px">`+groupesClasses().map(g=>{
+    const c=codeDe(g.id), ici=memo[g.id]===c;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:9px 12px">
+      <span style="font-size:13.5px">${g.name}</span>
+      <span class="mono" style="font-size:17px;letter-spacing:3px;color:var(--ink)">${c||"—"}</span>
+      <span style="font-size:11px;color:var(--muted);min-width:78px;text-align:right">${ici?"ce poste ✓":""}</span></div>`; }).join("")+`</div>`;
+}
+async function profGenererCodes(){
+  if(codesActifs() && !confirm("Générer de nouveaux codes ? Les anciens cesseront de fonctionner et chaque équipe devra ressaisir le sien.")) return;
+  CFG.codes=genererCodes(); await saveCfg(); renderCodes(); toast("Codes générés. Distribuez-les à chaque équipe.");
+}
+async function profDesactiverCodes(){
+  if(!confirm("Désactiver les codes ? Tout poste pourra de nouveau agir sur n'importe quel portefeuille.")) return;
+  CFG.codes={}; await saveCfg(); renderCodes(); toast("Codes désactivés.");
+}
+function profOublierPoste(){ try{ localStorage.removeItem(LS_CLE); }catch(e){}
+  renderCodes(); toast("Ce poste a oublié les groupes mémorisés."); }
+function profImprimerCodes(){
+  if(!codesActifs()){ toast("Générez d'abord les codes.",true); return; }
+  const cartes=groupesClasses().map(g=>`<div class="c"><div class="n">${g.name}</div><div class="k">${codeDe(g.id)}</div>
+    <div class="u">La Corbeille · cordée Paris-Dauphine<br>À saisir une fois sur votre poste.</div></div>`).join("");
+  const w=window.open("","_blank");
+  if(!w){ toast("La fenêtre d'impression a été bloquée par le navigateur.",true); return; }
+  w.document.write(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><title>Codes des groupes</title>
+  <style>@page{margin:14mm} body{font-family:system-ui,-apple-system,sans-serif;margin:0}
+  h1{font-size:15pt;margin:0 0 8mm} .g{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+  .c{border:1px dashed #888;border-radius:3mm;padding:7mm;text-align:center;page-break-inside:avoid}
+  .n{font-size:13pt;font-weight:700;margin-bottom:3mm} .k{font-size:30pt;font-weight:700;letter-spacing:7px;font-family:ui-monospace,monospace}
+  .u{font-size:8pt;color:#555;margin-top:4mm;line-height:1.5}</style></head>
+  <body><h1>Codes d'accès des groupes — ${new Date().toLocaleDateString("fr-FR")}</h1><div class="g">${cartes}</div></body></html>`);
+  w.document.close(); setTimeout(()=>{ try{ w.print(); }catch(e){} },350);
+}
 function fillEps(){ const ta=$("#epsIn"); if(!ta) return;
   const e=(CFG&&CFG.eps)||{};
   ta.value=Object.keys(e).sort().map(k=>k+";"+String(e[k]).replace(".",",")).join("\n");
@@ -1375,7 +1490,10 @@ document.addEventListener("click", async (e)=>{
   const t=e.target.closest("[data-view],[data-pick],[data-buy],[data-sell],[data-cat]");
   if(t){
     if(t.dataset.view) return switchView(t.dataset.view);
-    if(t.dataset.pick){ MY=t.dataset.pick; $("#groupPick").style.display="none"; $("#groupDesk").style.display="block"; enterDesk(); return; }
+    if(t.dataset.pick){ const gid=t.dataset.pick;
+      if(!groupeAutorise(gid)){ demanderCode(gid).then(ok=>{ if(!ok) return;
+        MY=gid; $("#groupPick").style.display="none"; $("#groupDesk").style.display="block"; enterDesk(); }); return; }
+      MY=gid; $("#groupPick").style.display="none"; $("#groupDesk").style.display="block"; enterDesk(); return; }
     if(t.dataset.buy) return doTrade(t.dataset.buy,"BUY");
     if(t.dataset.sell) return doTrade(t.dataset.sell,"SELL");
     if(t.dataset.cat){ FILTER_CAT=t.dataset.cat; document.querySelectorAll("[data-cat]").forEach(c=>c.setAttribute("aria-pressed",c.dataset.cat===FILTER_CAT)); buildMarket(); return; }
@@ -1399,6 +1517,10 @@ document.addEventListener("click", async (e)=>{
   if(e.target.id==="fixBench") profFixBench();
   if(e.target.id==="expCmp") exportCompareCSV();
   if(e.target.id==="epsSave") profSaveEps();
+  if(e.target.id==="codesGen") profGenererCodes();
+  if(e.target.id==="codesOff") profDesactiverCodes();
+  if(e.target.id==="codesForget") profOublierPoste();
+  if(e.target.id==="codesPrint") profImprimerCodes();
   if(e.target.id==="pinShow"){ const f=$("#pinSet"); if(f){ const h=f.type==="password"; f.type=h?"text":"password"; e.target.textContent=h?"Masquer":"Afficher"; } }
   if(e.target.id==="expBoard"||e.target.id==="expBoard2") exportBoardCSV();
   if(e.target.id==="expPf") exportPortfoliosCSV();
